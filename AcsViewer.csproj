@@ -1,0 +1,249 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{8978340D-60B5-4C0F-9FA7-81EDA4A60D46}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>AcsViewer</RootNamespace>
+    <AssemblyName>AcsViewer</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <UpgradeBackupLocation />
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <SccProjectName>
+    </SccProjectName>
+    <SccLocalPath>
+    </SccLocalPath>
+    <SccAuxPath>
+    </SccAuxPath>
+    <SccProvider>
+    </SccProvider>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Xml.Linq">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data.DataSetExtensions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="BinaryFile.cs" />
+    <Compile Include="Player\GameControllerBase.cs" />
+    <Compile Include="Player\IGameController.cs" />
+    <Compile Include="Player\RoomController.cs" />
+    <Compile Include="Player\WorldMapController.cs" />
+    <Compile Include="Viewer\CreatureViewer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Viewer\CreatureViewer.Designer.cs">
+      <DependentUpon>CreatureViewer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Viewer\DisplayText.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Viewer\DisplayText.Designer.cs">
+      <DependentUpon>DisplayText.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Player\GameEngine.cs" />
+    <Compile Include="Viewer\InfoViewer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Viewer\InfoViewer.Designer.cs">
+      <DependentUpon>InfoViewer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Viewer\MainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Viewer\MainForm.Designer.cs">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Viewer\GraphicsViewer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Viewer\GraphicsViewer.Designer.cs">
+      <DependentUpon>GraphicsViewer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Player\RoomView.cs" />
+    <Compile Include="Player\MapView.cs" />
+    <Compile Include="Viewer\MapViewer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Viewer\MapViewer.Designer.cs">
+      <DependentUpon>MapViewer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Player\PlayGame.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Player\PlayGame.Designer.cs">
+      <DependentUpon>PlayGame.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Viewer\CreatureViewer.resx">
+      <DependentUpon>CreatureViewer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Viewer\DisplayText.resx">
+      <DependentUpon>DisplayText.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Viewer\InfoViewer.resx">
+      <DependentUpon>InfoViewer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Viewer\MainForm.resx">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Viewer\GraphicsViewer.resx">
+      <DependentUpon>GraphicsViewer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Viewer\MapViewer.resx">
+      <DependentUpon>MapViewer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Player\PlayGame.resx">
+      <DependentUpon>PlayGame.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Viewer\RegionViewer.resx">
+      <DependentUpon>RegionViewer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Viewer\RoomViewer.resx">
+      <DependentUpon>RoomViewer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Viewer\TerrainViewer.resx">
+      <DependentUpon>TerrainViewer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Viewer\ThingViewer.resx">
+      <DependentUpon>ThingViewer.cs</DependentUpon>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <None Include="app.config" />
+    <None Include="Properties\DataSources\AcsLib.Creature.datasource" />
+    <None Include="Properties\DataSources\AcsLib.GameDefinition.datasource" />
+    <None Include="Properties\DataSources\AcsLib.Thing.datasource" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="Viewer\RegionViewer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Viewer\RegionViewer.Designer.cs">
+      <DependentUpon>RegionViewer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Viewer\RoomViewer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Viewer\RoomViewer.Designer.cs">
+      <DependentUpon>RoomViewer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Viewer\TerrainViewer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Viewer\TerrainViewer.Designer.cs">
+      <DependentUpon>TerrainViewer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Viewer\ThingViewer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Viewer\ThingViewer.Designer.cs">
+      <DependentUpon>ThingViewer.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="AcsLib\AcsLib.csproj">
+      <Project>{ABF8DE46-EC85-4B96-A70D-CF01742260CB}</Project>
+      <Name>AcsLib</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
