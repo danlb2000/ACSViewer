@@ -8,38 +8,39 @@ License
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    Atari Disk Explorer is distributed in the hope that it will be useful,
+    ACS Viewer is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Atari Disk Explorer.  If not, see <http://www.gnu.org/licenses/>.
+    along with ACS Viewer.  If not, see <http://www.gnu.org/licenses/>.
 
 System Requirements
 -------------------
 
    Windows XP or greater 
-   Microsoft .NET Framework 2.0
-
-
-History
---------
+   Microsoft .NET Framework 4.0
 
 
 Features
 --------
 
+	This program allows you to view the contents of the game files created with the MSDOS or C64 versions 
+	of Adventure Construction Set. The program also has a rudimentary play function that allows you to walk 
+	throught the game maps. 
 	
 
 Source Code
 -----------
 
-	The soruce code for the project can be opened and compiled with Microsoft Visual Studio 2015. The solution contains the followign projects:
+	The soruce code for the project can be opened and compiled with Microsoft Visual Studio 2015. The source code c
+	can be found here:
 	
+	https://github.com/danlb2000/ACSViewer
 	
 
 Revision Log
 ------------
-	V1.0 - 10/29/2016 - First release
+	V1.0 - 11/25/2016 - First release
 

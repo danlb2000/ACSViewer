@@ -12,6 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		AcsViewer.vsmdi = AcsViewer.vsmdi
 		CustomDictionary.xml = CustomDictionary.xml
 		Local.testsettings = Local.testsettings
+		ReadMe.txt = ReadMe.txt
 		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
 	EndProjectSection
 EndProject
@@ -21,6 +22,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Unit Test Metrics", "Unit T
 	ProjectSection(SolutionItems) = preProject
 		RunOpenCover.bat = RunOpenCover.bat
 	EndProjectSection
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "AcsViewerInstall", "AcsViewerInstall\AcsViewerInstall.vdproj", "{ADB46F46-9147-438D-A99C-64729DB95DBD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -40,6 +43,8 @@ Global
 		{6149F7CB-006E-489C-B797-2DFDDE2F6EA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6149F7CB-006E-489C-B797-2DFDDE2F6EA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6149F7CB-006E-489C-B797-2DFDDE2F6EA9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ADB46F46-9147-438D-A99C-64729DB95DBD}.Debug|Any CPU.ActiveCfg = Debug
+		{ADB46F46-9147-438D-A99C-64729DB95DBD}.Release|Any CPU.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
