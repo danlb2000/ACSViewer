@@ -24,7 +24,7 @@ namespace AcsLib
     {
         public enum ActionParameterType
         {
-            Numeric,
+            Music,
             Message,
             Item,
             VictimStat,
@@ -110,7 +110,7 @@ namespace AcsLib
                     case SpellActionType.DisplayMessage:
                         return ActionParameterType.Message;
                     case SpellActionType.PlayMusic:
-                        return ActionParameterType.Numeric;
+                        return ActionParameterType.Music;
                   
                     default:
                         return ActionParameterType.None;

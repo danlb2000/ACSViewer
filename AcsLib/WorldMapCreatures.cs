@@ -21,6 +21,13 @@ namespace AcsLib
     {
         public Creature Creature { get; set; }
         public byte ChanceAppearing { get; set; }
-        public byte AppearingInTerrain { get; set; }
+        //public byte AppearingInTerrain { get; set; }
+        public string AppearingIn { get; set; }
+
+        public override string ToString()
+        {
+            if (!Creature.InUse) return "";
+            return Creature.Name;
+        }
     }
 }

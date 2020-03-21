@@ -19,17 +19,21 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Drawing;
+using System.Linq;
 
 namespace AcsLib
 {
     public class GameDefinition
     {
 
-        public enum FileType
+        public enum SystemType
         {
             PC,
-            C64
+            C64,
+            Apple,
+            Amiga
         }
 
         public int PlayerX { get; set; }
@@ -38,18 +42,26 @@ namespace AcsLib
         public int PlayerRegion { get; set; }
         public int PlayerRoom { get; set; }
 
-        public FileType TypeOfFile { get; set; }
+        public SystemType System { get; set; }
 
         public string Name { get; set; }
 
 
         public string Byline { get; set; }
         public string IntroText { get; set; }
+        public string Theme { get; set; }
 
         public Collection<Thing> Things { get; set; }
         public Collection<Creature> CreatureList { get;  }
+        public Collection<WorldMapCreature> ActivePlayers { get; }
+        public int ActivePlayerCount { get; set; }
+        public Collection<WorldMapCreature> RetiredPlayers { get; }
+        public int RetiredPlayerCount { get; set; }
 
+        public int PaletteSize { get; set; }
         public Bitmap[] Pictures { get; set; }
+        public SolidBrush[] Colors { get; set; }
+        public string[] ColorNames { get; set; }
 
         public int NumberOfPictures { get; set; }
         public Terrain[] TerrainTypes { get; set; }
@@ -61,28 +73,49 @@ namespace AcsLib
 
         public WorldMapPortal[] WorldMapPortals { get; set; }
 
+        public enum WorldMapWrapType: int
+        {
+            [DescriptionAttribute("is not permitted")]
+            NotPermitted = 0,
+            [DescriptionAttribute("leads to opposite edge")]
+            WrapsAround = 1
+        }
+        
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1814:PreferJaggedArraysOverMultidimensional")]
         public byte[,] WorldMap { get; set; }
         public WorldMapCreature[] WorldMapCreatures { get; set; }
+        public Collection<WorldMapCreature> WorldMapPlayers { get; }
         public string WorldMapName { get; set; }
         public int WorldMapStartX { get; set; }
         public int WorldMapStartY { get; set; }
+        public WorldMapWrapType TypeWorldMapWrap { get; set; }
+        public string WorldMapWrapTypeDescription 
+        { 
+            get { return TypeWorldMapWrap.ToDescription(); }
+        }
 
         public int NumberOfRegions { get; set; }
 
-        public Collection<string> FinishGameNames { get; set; }
+        //public Collection<string> FinishGameNames { get; set; }
 
         public GameDefinition()
         {
             Pictures = new Bitmap[128];
+            Colors = Enumerable.Repeat(new SolidBrush(Color.Black), 32).ToArray();
+            ColorNames = new string[32];
             WorldMap = new Byte[40, 40];
-            LongMessages = new string[80];
-            FinishGameNames = new Collection<String>();
+            LongMessages = new string[255];
+            //FinishGameNames = new Collection<String>();
             TerrainTypes = new Terrain[16];
             WorldMapCreatures = new WorldMapCreature[8];
             WorldMapPortals = new WorldMapPortal[32];
+            WorldMapPlayers = new Collection<WorldMapCreature>();
             Things = new Collection<Thing>();
             CreatureList = new Collection<Creature>();
+            ActivePlayers = new Collection<WorldMapCreature>();
+            ActivePlayerCount = 0;
+            RetiredPlayers = new Collection<WorldMapCreature>();
+            RetiredPlayerCount = 0;
             Regions = new AcsLib.Region[15];
             CreatureClassNames = new string[8];
         }

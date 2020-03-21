@@ -26,12 +26,26 @@ namespace AcsLib
     public class GameLoader
     {
 
-        private const int PC_OFFSET = 0x00;
-        private const int C64_OFFSET = 0x200;
+        enum AddressLabels: int
+        {
+            LongMessages = 0,
+            IntroText,
+            ShortMessages,
+            Creatures,
+            Things,
+            AdventureData,
+            WorldMap,
+            Regions
+        }
 
         BinaryFile file;
-        private Brush[] palette = new Brush[17];
-        int[] colorLookup = new Int32[4];
+        private int fileOffset;
+        private readonly int[] Addresses = new int[8];
+        private Brush[] palette = new Brush[32];
+        private readonly string[] paletteNames = new string[32];
+        // This array is used to convert the 2 bits of Apple graphic bytes
+        private readonly byte[] ac = new byte[16] { 0, 1, 2, 7, 0, 5, 2, 7, 0, 1, 6, 7, 0, 5, 6, 7 };
+        public readonly int[] colorLookup = new Int32[32];
 
 
         public GameDefinition LoadGame(string fileName)
@@ -41,27 +55,81 @@ namespace AcsLib
             string extension = System.IO.Path.GetExtension(fileName);
             file = new BinaryFile();
 
-            if (extension.ToUpper(CultureInfo.CurrentCulture) == ".D64")
+            // Setting system and starting value of fileOffset
+            switch (extension.ToUpper(CultureInfo.CurrentCulture))
             {
-                definition.TypeOfFile = GameDefinition.FileType.C64;
-                file.Offset = C64_OFFSET;
+                case ".D64":
+                    definition.System = GameDefinition.SystemType.C64;
+                    fileOffset = 0;
+                    break;
+                case ".FPY":
+                case ".HRD":
+                    definition.System = GameDefinition.SystemType.PC;
+                    fileOffset = 0;
+                    break;
+                case ".DSK":
+                    definition.System = GameDefinition.SystemType.Apple;
+                    fileOffset = -26368;
+                    break;
+                default:
+                    definition.System = GameDefinition.SystemType.Amiga;
+                    fileOffset = 70912;
+                    break;
             }
-            else
-            {
-                definition.TypeOfFile = GameDefinition.FileType.PC;
-                file.Offset = PC_OFFSET;
-            }
+
+            // populate table of key addresses in the data file
+            Addresses[(int)AddressLabels.LongMessages] =  0x06C00 + fileOffset;
+                if (definition.System == GameDefinition.SystemType.C64) fileOffset = 512;
+            Addresses[(int)AddressLabels.IntroText] =     0x16A00 + fileOffset;
+                if (definition.System == GameDefinition.SystemType.Amiga) fileOffset = -4608;
+            Addresses[(int)AddressLabels.ShortMessages] = 0x16B00 + fileOffset;
+                if (definition.System == GameDefinition.SystemType.Amiga) fileOffset = -77056;
+            Addresses[(int)AddressLabels.Creatures] =     0x19300 + fileOffset;
+            Addresses[(int)AddressLabels.Things] =        0x1B800 + fileOffset;
+            Addresses[(int)AddressLabels.AdventureData] = 0x1C200 + fileOffset;
+                if (definition.System == GameDefinition.SystemType.Amiga) fileOffset = -77312;
+            Addresses[(int)AddressLabels.WorldMap] =      0x1C700 + fileOffset;
+            Addresses[(int)AddressLabels.Regions] =       0x1D300 + fileOffset;
+            // pictures and palettes are so tied to system architecture 
+            // that we won't bother to store the addresses for those
 
             file.Load(fileName);
 
-            LoadFinishGameNames(definition);
+            //LoadFinishGameNames(definition);
 
             LoadThings(definition);
 
-            if (definition.TypeOfFile == GameDefinition.FileType.PC)
-                LoadPicturesPC(definition);
-            else
-                LoadPicturesC64(definition);
+            switch (definition.System)
+            {
+                case GameDefinition.SystemType.PC:
+                    LoadPicturesPC(definition);
+                    break;
+                case GameDefinition.SystemType.C64:
+                    LoadPicturesC64(definition);
+                    break;
+                case GameDefinition.SystemType.Apple:
+                    LoadPicturesApple(definition);
+                    break;
+                case GameDefinition.SystemType.Amiga:
+                    LoadPicturesAmiga(definition);
+                    break;
+            }
+
+            switch (definition.System)
+            {
+                case GameDefinition.SystemType.PC:
+                case GameDefinition.SystemType.C64:
+                    definition.PaletteSize = 4;
+                    definition.Colors[0] = (SolidBrush)palette[colorLookup[0]];
+                    definition.Colors[1] = (SolidBrush)palette[colorLookup[1]];
+                    definition.Colors[2] = (SolidBrush)palette[colorLookup[2]];
+                    definition.Colors[3] = (SolidBrush)palette[colorLookup[3]];
+                    definition.ColorNames[0] = paletteNames[colorLookup[0]];
+                    definition.ColorNames[1] = paletteNames[colorLookup[1]];
+                    definition.ColorNames[2] = paletteNames[colorLookup[2]];
+                    definition.ColorNames[3] = paletteNames[colorLookup[3]];
+                    break;
+            }
 
             LoadGameInfo(definition);
             LoadTerrain(definition);
@@ -72,11 +140,16 @@ namespace AcsLib
 
             LoadClassNames(definition);
             LoadMasterCreatures(definition);
+            LoadPlayers(definition);
             LoadLongMessages(definition);
 
             return definition;
         }
 
+        /* The Apple data file doesn't contain this section,
+         * and it isn't used in the viewer, so it's being removed.
+         */
+        /*
         private void LoadFinishGameNames(GameDefinition definition)
         {
             int start = 0x4B00;
@@ -93,6 +166,7 @@ namespace AcsLib
             }
 
         }
+        */
 
         private void LoadWorldMapCreatures(GameDefinition definition)
         {
@@ -100,15 +174,20 @@ namespace AcsLib
 
             for (int i = 0; i < 8; i++)
             {
-                definition.WorldMapCreatures[i] = new WorldMapCreature();
-                definition.WorldMapCreatures[i].Creature = LoadCreature((int)(0x1CE52 + i * 10), 0, (int)(0x1CB0A + i * 37));
-                definition.WorldMapCreatures[i].AppearingInTerrain = file.ReadByte(0x1CD5A + i).Field(4, 7);
-                int chance = file.ReadByte(0x1CD5A + i).Field(0, 3);
+                int chance = file.ReadByte(Addresses[(int)AddressLabels.WorldMap] + 0x65A + i).Field(0, 3);
                 if (chance < 5)
                     chance *= 2;
                 else
                     chance = (chance - 3) * 5;
-                definition.WorldMapCreatures[i].ChanceAppearing = (byte)chance;
+                definition.WorldMapCreatures[i] = new WorldMapCreature
+                {
+                    Creature = LoadCreature((int)(Addresses[(int)AddressLabels.WorldMap] + 0x752 + i * 10), 0,
+                    (int)(Addresses[(int)AddressLabels.WorldMap] + 0x40A + i * 37)),
+                    //definition.WorldMapCreatures[i].AppearingInTerrain = file.ReadByte(0x1CD5A + i).Field(4, 7);
+                    AppearingIn = definition.TerrainTypes[
+                        file.ReadByte(Addresses[(int)AddressLabels.WorldMap] + 0x65A + i).Field(4, 7)].Name,
+                    ChanceAppearing = (byte)chance
+                };
 
             }
         }
@@ -116,20 +195,36 @@ namespace AcsLib
         private void LoadGameInfo(GameDefinition definition)
         {
             if (definition == null) throw new ArgumentNullException("definition");
+            int AdventureAddress = Addresses[(int)AddressLabels.AdventureData];
 
-            definition.Name = TextDecoder.DecodeAscii(file.ReadBlock(0x1C200, 0x13)).TrimEnd();
-            definition.Byline = TextDecoder.DecodeAscii(file.ReadBlock(0x1C214, 0x13)).TrimEnd();
-            definition.IntroText = TextDecoder.DecodeAscii(file.ReadBlock(0x16A00, 256));
+            definition.Name = TextDecoder.DecodeAscii(file.ReadBlock(AdventureAddress, 0x13)).TrimEnd();
+            definition.Byline = TextDecoder.DecodeAscii(file.ReadBlock(AdventureAddress + 0x14, 0x13)).TrimEnd();
+            definition.IntroText = TextDecoder.DecodeAscii(file.ReadBlock(
+                Addresses[(int)AddressLabels.IntroText], 256));
+            Music Theme = new Music
+            {
+                TypeOfMusic = (Music.MusicType)(file.ReadByte(AdventureAddress + 0x36E) + 13)
+            };
+            definition.Theme = Theme.MusicTypeDescription.Substring(8);
+
         }
 
         private void LoadLongMessages(GameDefinition definition)
         {
             if (definition == null) throw new ArgumentNullException("definition");
 
-            for (int i = 0; i < 80; i++)
+            // For the C64 only, the long message block is interrupted by the 
+            //   1541 BAM and directory sectors, which is why we are loading
+            //   the data in two pieces.
+            for (int i = 0; i < 249; i++)
             {
-                var msg = file.ReadBlock(0x6C00 + (i * 256), 256);
+                var msg = file.ReadBlock(Addresses[(int)AddressLabels.LongMessages] + (i * 256), 256);
                 definition.LongMessages[i] = TextDecoder.DecodeAscii(msg);
+            }
+            for (int i = 0; i < 6; i++)
+            {
+                var msg = file.ReadBlock(Addresses[(int)AddressLabels.IntroText] - 1280 + (i * 256), 256);
+                definition.LongMessages[i + 249] = TextDecoder.DecodeAscii(msg);
             }
         }
 
@@ -139,35 +234,38 @@ namespace AcsLib
         {
             if (definition == null) throw new ArgumentNullException("definition");
 
+            int ThingAddr = Addresses[(int)AddressLabels.Things];
             byte b;
             byte[] name;
 
             for (int thingNum = 0; thingNum < 128; thingNum++)
             {
-                Thing thing = new Thing();
-                thing.Number = thingNum + 1;
+                Thing thing = new Thing
+                {
+                    Number = thingNum + 1
+                };
 
                 //Name
-                name = file.ReadBlock(0x1B800 + (thingNum * 10), 10);
+                name = file.ReadBlock(ThingAddr + (thingNum * 10), 10);
                 thing.Name = TextDecoder.DecodePacked(name).Trim();
 
                 // Common Properties 
-                b = file.ReadByte(0x1BD00 + thingNum * 4);
+                b = file.ReadByte(ThingAddr + 0x500 + thingNum * 4);
 
                 thing.TypeOfThing = (Thing.ThingType)(b.Field(0, 3));
                 thing.DisappearsAfterUser = b.BitField(4);
 
                 // How many ACS can add
-                b = file.ReadByte(0x1C000 + thingNum);
+                b = file.ReadByte(ThingAddr + 0x800 + thingNum);
                 thing.AcsMayAdd = b.Field(4, 7);
                 switch (thing.TypeOfThing)
                 {
                     case Thing.ThingType.RoomFloor:
                     case Thing.ThingType.Store:
-                        thing.Picture = file.ReadByte(0x1BD00 + thingNum * 4 + 1);
+                        thing.Picture = file.ReadByte(ThingAddr + 0x500 + thingNum * 4 + 1);
                         break;
                     case Thing.ThingType.Treasure:
-                        thing.Picture = file.ReadByte(0x1BD00 + thingNum * 4 + 3);
+                        thing.Picture = file.ReadByte(ThingAddr + 0x500 + thingNum * 4 + 3);
                         LoadThingWeightValue(thing);
                         break;
                     case Thing.ThingType.MagicItem:
@@ -209,7 +307,7 @@ namespace AcsLib
         {
             if (thing == null) throw new ArgumentNullException("thing");
 
-            int address = 0x1BD00 + (thing.Number - 1) * 4;
+            int address = Addresses[(int)AddressLabels.Things] + 0x500 + (thing.Number - 1) * 4;
             byte[] data = file.ReadBlock(address, 4);
 
             if (data[0x00].BitField(7))
@@ -221,7 +319,7 @@ namespace AcsLib
             thing.CustomSpaceAccess = (Thing.CustomSpaceAccessType)(data[0x01].Field(6, 7));
             thing.Action.TypeOfSpellAction = (SpellAction.SpellActionType)data[0x02].Field(0, 3);
 
-            thing.DestroyThingNeededToMove = data[0x03].BitField(7);
+            thing.DestroyThingNeededToMove = data[0x02].BitField(7);
 
             if (thing.ChooseWhenPutIntoRoom == Thing.ChooseWhenPutIntoRoomType.Object)
             {
@@ -240,7 +338,7 @@ namespace AcsLib
         {
             if (thing == null) throw new ArgumentNullException("thing");
 
-            int address = 0x1BD00 + (thing.Number - 1) * 4;
+            int address = Addresses[(int)AddressLabels.Things] + 0x500 + (thing.Number - 1) * 4;
 
             byte b = file.ReadByte(address + 1);
             thing.Picture = b.Field(0, 5);
@@ -255,7 +353,7 @@ namespace AcsLib
         {
             if (thing == null) throw new ArgumentNullException("thing");
 
-            int address = 0x1BD00 + (thing.Number - 1) * 4;
+            int address = Addresses[(int)AddressLabels.Things] + 0x500 + (thing.Number - 1) * 4;
             byte[] data = file.ReadBlock(address, 4);
 
             thing.Picture = data[1].Field(0, 5);
@@ -272,7 +370,7 @@ namespace AcsLib
         {
             if (thing == null) throw new ArgumentNullException("thing");
 
-            int address = 0x1BD00 + (thing.Number - 1) * 4;
+            int address = Addresses[(int)AddressLabels.Things] + 0x500 + (thing.Number - 1) * 4;
             byte[] data = file.ReadBlock(address, 4);
 
             thing.ChooseWhenPutIntoRoom = Thing.ChooseWhenPutIntoRoomType.SpellModifier;
@@ -289,7 +387,7 @@ namespace AcsLib
             thing.HasPicture = false;
             thing.Picture = 0;
 
-            int address = 0x1BD00 + (thing.Number - 1) * 4;
+            int address = Addresses[(int)AddressLabels.Things] + 0x500 + (thing.Number - 1) * 4;
             thing.Power = (int)file.ReadByte(address + 1);
             byte b = file.ReadByte(address + 2);
             thing.Action.TypeOfSpellAction = (SpellAction.SpellActionType)(b.Field(0, 3));
@@ -303,10 +401,11 @@ namespace AcsLib
             if (thing == null) throw new ArgumentNullException("thing");
 
             byte b;
-            int index = file.ReadByte(0x1BD00 + (thing.Number - 1) * 4 + 3);
+            int ThingAddress = Addresses[(int)AddressLabels.Things];
+            int index = file.ReadByte(ThingAddress + 0x500 + (thing.Number - 1) * 4 + 3);
 
-            int offset = file.ReadByte(0x1C082);
-            int address = 0x1C084 + offset + (index * 3);
+            int offset = file.ReadByte(ThingAddress + 0x882);
+            int address = ThingAddress + 0x884 + offset + (index * 3);
             b = file.ReadByte(address);
             thing.Action.TypeOfSpellAction = (SpellAction.SpellActionType)(b.Field(0, 3));
             thing.InvokedWhenOwnerUsesItem = b.BitField(7);
@@ -324,10 +423,10 @@ namespace AcsLib
         {
             if (thing == null) throw new ArgumentNullException("thing");
 
-            bool show = false;
+            bool show;
 
             // Load message
-            int address = 0x1BF00 + (thing.Number - 1) + (whichMessage * 0x80);
+            int address = Addresses[(int)AddressLabels.Things] + 0x700 + (thing.Number - 1) + (whichMessage * 0x80);
             byte b = file.ReadByte(address);
             show = !b.BitField(7);
             int messageIndex = b.Field(0, 6);
@@ -336,9 +435,13 @@ namespace AcsLib
             if (show)
             {
                 messageIndex -= 1;
-                address = 0x16B00 + ((((messageIndex & 0x7E) >> 1) * 0x100) + (messageIndex & 0x01) * 0x78);
+                address = Addresses[(int)AddressLabels.ShortMessages] + ((((messageIndex & 0x7E) >> 1) * 0x100) + (messageIndex & 0x01) * 0x78);
                 byte[] msg = file.ReadBlock(address, 120);
-                return TextDecoder.DecodeAscii(msg);
+                string rawMessage = TextDecoder.DecodeAscii(msg);
+                string message = rawMessage.Substring(0, 40);
+                if (rawMessage.Length > 40) message = String.Concat(message, "\r\n", rawMessage.Substring(40, 40));
+                if (rawMessage.Length > 80) message = String.Concat(message, "\r\n", rawMessage.Substring(80, 40));
+                return message;
             }
 
             return "";
@@ -348,7 +451,9 @@ namespace AcsLib
         {
             if (thing == null) throw new ArgumentNullException("thing");
 
-            int address = 0x1BD00 + (thing.Number - 1) * 4;
+            int ThingAddress = Addresses[(int)AddressLabels.Things];
+
+            int address = ThingAddress + 0x500 + (thing.Number - 1) * 4;
             byte b = file.ReadByte(address);
             thing.OneWayPortal = !b.BitField(5);
             b = file.ReadByte(address + 1);
@@ -357,8 +462,8 @@ namespace AcsLib
             b = file.ReadByte(address + 2);
             thing.DestroyThingNeededToMove = b.BitField(7);
 
-            int address2 = 0x1BF00 + (thing.Number - 1);
-            b = file.ReadByte(address2);
+            //int address2 = ThingAddress + 0x700 + (thing.Number - 1);
+            //b = file.ReadByte(address2);
 
             thing.WhyCannotPassMessage = LoadMessage(thing, 0);
         }
@@ -367,7 +472,7 @@ namespace AcsLib
         {
             if (thing == null) throw new ArgumentNullException("thing");
 
-            int address = 0x1BD00 + (thing.Number - 1) * 4;
+            int address = Addresses[(int)AddressLabels.Things] + 0x500 + (thing.Number - 1) * 4;
             byte b = file.ReadByte(address + 1);
 
             thing.PortalAccess = (Thing.PortalAccessType)b.Field(6, 7);
@@ -388,8 +493,9 @@ namespace AcsLib
         {
             if (thing == null) throw new ArgumentNullException("thing");
 
-            int index = file.ReadByte(0x1BD00 + (thing.Number - 1) * 4 + 3);
-            int address = 0x1C084 + index * 3;
+            int ThingAddress = Addresses[(int)AddressLabels.Things];
+            int index = file.ReadByte(ThingAddress + 0x500 + (thing.Number - 1) * 4 + 3);
+            int address = ThingAddress + 0x884 + index * 3;
             byte[] bb = file.ReadBlock(address, 3);
 
             thing.ChanceOfBreaking = bb[1].Field(0, 3);
@@ -419,7 +525,7 @@ namespace AcsLib
             if (thing == null) throw new ArgumentNullException("thing");
 
             int[] weightMultiplier = { 1, -1, 20, -20 };
-            byte[] b = file.ReadBlock(0x1BD00 + (thing.Number - 1) * 4, 3);
+            byte[] b = file.ReadBlock(Addresses[(int)AddressLabels.Things] + 0x500 + (thing.Number - 1) * 4, 3);
 
             // Weight
             thing.Weight = (int)(b[1]);
@@ -432,7 +538,7 @@ namespace AcsLib
         #endregion
 
         #region "Graphics"
-        private void SetupPalette()
+        private void SetupPalettePC()
         {
             palette[0] = new SolidBrush(Color.FromArgb(0, 0, 0));
             palette[1] = new SolidBrush(Color.FromArgb(0, 0, 170));
@@ -453,20 +559,109 @@ namespace AcsLib
             palette[13] = new SolidBrush(Color.FromArgb(255, 85, 255));
             palette[14] = new SolidBrush(Color.FromArgb(255, 255, 85));
             palette[15] = new SolidBrush(Color.FromArgb(255, 255, 255));
+
+            paletteNames[0] = "Black";
+            paletteNames[1] = "Blue";
+            paletteNames[2] = "Green";
+            paletteNames[3] = "Cyan";
+            paletteNames[4] = "Red";
+            paletteNames[5] = "Magenta";
+            paletteNames[6] = "Brown";
+            paletteNames[7] = "Light Gray";
+            paletteNames[8] = "Dark gray";
+            paletteNames[9] = "Light Blue";
+            paletteNames[10] = "Light Green";
+            paletteNames[11] = "Light Cyan";
+            paletteNames[12] = "Light Red";
+            paletteNames[13] = "Light Magenta";
+            paletteNames[14] = "Yellow";
+            paletteNames[15] = "White";
         }
 
+        private void SetupPaletteC64()
+        {
+            C64Palette cpal = new C64Palette();
+            cpal.LoadPalette();
+
+            palette = cpal.PalColor;
+
+            paletteNames[0] = "Black";
+            paletteNames[1] = "White";
+            paletteNames[2] = "Red";
+            paletteNames[3] = "Cyan";
+            paletteNames[4] = "Purple";
+            paletteNames[5] = "Green";
+            paletteNames[6] = "Blue";
+            paletteNames[7] = "Yellow";
+            // Adventure Construction Set never uses the remaining colors:
+            paletteNames[8] = "Orange";
+            paletteNames[9] = "Brown";
+            paletteNames[10] = "Light Red";
+            paletteNames[11] = "Dark Gray";
+            paletteNames[12] = "Medium Gray";
+            paletteNames[13] = "Light Green";
+            paletteNames[14] = "Light Blue";
+            paletteNames[15] = "Light Gray";
+        }
+
+        public void SetupPaletteApple()
+        {
+            palette[0] = new SolidBrush(Color.FromArgb(0, 0, 0));
+            palette[1] = new SolidBrush(Color.FromArgb(50, 208, 0));
+            palette[2] = new SolidBrush(Color.FromArgb(212, 41, 255));
+            palette[3] = new SolidBrush(Color.FromArgb(255, 255, 255));
+
+            palette[4] = new SolidBrush(Color.FromArgb(0, 0, 0));
+            palette[5] = new SolidBrush(Color.FromArgb(255, 92, 0));
+            palette[6] = new SolidBrush(Color.FromArgb(0, 159, 226));
+            palette[7] = new SolidBrush(Color.FromArgb(255, 255, 255));
+
+            paletteNames[0] = "Black"; // binary 000
+            paletteNames[1] = "Green"; // binary 001
+            paletteNames[2] = "Violet"; // binary 010
+            paletteNames[3] = "White"; // binary 011
+            paletteNames[4] = "Black"; // binary 100
+            paletteNames[5] = "Orange"; // binary 101
+            paletteNames[6] = "Blue"; // binary 110
+            paletteNames[7] = "White"; // binary 111
+        }
+
+        public void SetupPaletteAmiga(GameDefinition definition)
+        {
+            // Amiga color conversion involves unpacking hex shorthand:
+            //  0 = 00, 1 = 11, ... F = FF. There's probably a built-in
+            //  C# method for this, but I couldn't find it, so I'll use
+            //  an array.
+            byte[] hexExpand = new byte[16]
+                { 00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
+                    0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF };
+            int addr = 0;
+            for (int i = 0; i < 32; i++)
+            {
+                var dat = file.ReadBlock(addr + i * 2, 2);
+                byte r = (byte)hexExpand[dat[0].Field(0, 3)];
+                byte g = (byte)hexExpand[dat[1].Field(4, 7)];
+                byte b = (byte)hexExpand[dat[1].Field(0, 3)];
+                palette[i] = new SolidBrush(Color.FromArgb(r, g, b));
+                colorLookup[i] = i;
+                definition.Colors[i] = (SolidBrush)palette[i];
+                // This will just populate the ARGB of each color
+                definition.ColorNames[i] = definition.Colors[i].Color.Name;
+            }
+            definition.PaletteSize = 32;
+        }
 
         public void LoadPicturesPC(GameDefinition definition)
         {
             if (definition == null) throw new ArgumentNullException("definition");
 
-            int ypos = 0;
+            int ypos;
             int curAddress;
 
-            int xpos = 0;
+            int xpos;
             Graphics g;
 
-            SetupPalette();
+            SetupPalettePC();
             colorLookup[0] = (int)(file.ReadByte(0x2A802) & 0x0f);
             colorLookup[1] = (int)(file.ReadByte(0x2A803) & 0x0f);
             colorLookup[2] = (int)(file.ReadByte(0x2A804) & 0x0f);
@@ -487,15 +682,15 @@ namespace AcsLib
 
                 for (int i = 0; i < 8; i++)
                 {
-                    RenderByte(g, file.ReadByte(curAddress + i), xpos, ypos + i);
-                    RenderByte(g, file.ReadByte(curAddress + 0x2400 + i), xpos + 4, ypos + i);
-                    RenderByte(g, file.ReadByte(curAddress + 8 + i), xpos + 8, ypos + i);
-                    RenderByte(g, file.ReadByte(curAddress + 0x2400 + 8 + i), xpos + 12, ypos + i);
+                    RenderBytePC(g, file.ReadByte(curAddress + i), xpos, ypos + i);
+                    RenderBytePC(g, file.ReadByte(curAddress + 0x2400 + i), xpos + 4, ypos + i);
+                    RenderBytePC(g, file.ReadByte(curAddress + 8 + i), xpos + 8, ypos + i);
+                    RenderBytePC(g, file.ReadByte(curAddress + 0x2400 + 8 + i), xpos + 12, ypos + i);
 
-                    RenderByte(g, file.ReadByte(curAddress + i + 0x800), xpos, ypos + i + 8);
-                    RenderByte(g, file.ReadByte(curAddress + 0x2400 + i + 0x800), xpos + 4, ypos + i + 8);
-                    RenderByte(g, file.ReadByte(curAddress + 8 + i + 0x800), xpos + 8, ypos + i + 8);
-                    RenderByte(g, file.ReadByte(curAddress + 0x2400 + 8 + i + 0x800), xpos + 12, ypos + i + 8);
+                    RenderBytePC(g, file.ReadByte(curAddress + i + 0x800), xpos, ypos + i + 8);
+                    RenderBytePC(g, file.ReadByte(curAddress + 0x2400 + i + 0x800), xpos + 4, ypos + i + 8);
+                    RenderBytePC(g, file.ReadByte(curAddress + 8 + i + 0x800), xpos + 8, ypos + i + 8);
+                    RenderBytePC(g, file.ReadByte(curAddress + 0x2400 + 8 + i + 0x800), xpos + 12, ypos + i + 8);
                 }
             }
 
@@ -505,17 +700,18 @@ namespace AcsLib
         {
             if (definition == null) throw new ArgumentNullException("definition");
 
-            int ypos = 0;
+            int ypos;
             int curAddress;
 
-            int xpos = 0;
+            int xpos;
             Graphics g;
 
-            SetupPalette();
-            colorLookup[0] = (int)(file.ReadByte(0x29880 - C64_OFFSET) & 0x0f);
-            colorLookup[1] = (int)(file.ReadByte(0x29881 - C64_OFFSET) & 0x0f);
-            colorLookup[2] = (int)(file.ReadByte(0x29882 - C64_OFFSET) & 0x0f);
-            colorLookup[3] = (int)(file.ReadByte(0x29883 - C64_OFFSET) & 0x0f);
+            SetupPaletteC64();
+            colorLookup[0] = (int)(file.ReadByte(0x29880) & 0x0f);
+            colorLookup[1] = (int)(file.ReadByte(0x29881) & 0x0f);
+            colorLookup[2] = (int)(file.ReadByte(0x29882) & 0x0f);
+            // for Commodore only, subtract 8 from last color
+            colorLookup[3] = (int)(file.ReadByte(0x29883) & 0x0f)-8;
 
             definition.NumberOfPictures = 110;
 
@@ -528,7 +724,7 @@ namespace AcsLib
 
                 xpos = 0;
                 ypos = 0;
-                curAddress = 0x28920 - C64_OFFSET + pic * 16;
+                curAddress = 0x28920 + pic * 16;
 
                 for (int i = 0; i < 8; i++)
                 {
@@ -541,13 +737,145 @@ namespace AcsLib
 
         }
 
+        public void LoadPicturesApple(GameDefinition definition)
+        {
+            if (definition == null) throw new ArgumentNullException("definition");
+
+            int ypos;
+            int curAddress;
+
+            //int xpos = 0; // Apple loads whole row at a time
+            int paletteSize = 6;
+            byte paletteMask = 0;
+            Graphics g;
+
+            SetupPaletteApple();
+            colorLookup[0] = 0;
+            colorLookup[1] = 1;
+            colorLookup[2] = 2;
+            colorLookup[3] = 3;
+            colorLookup[4] = 4;
+            colorLookup[5] = 5;
+            colorLookup[6] = 6;
+            colorLookup[7] = 7;
+
+            if (file.ReadByte(0x22FF9) == 0x7F)
+            {
+                paletteSize = 4;
+                paletteMask = (byte)(file.ReadByte(0x22FF8) >> 5);
+            }
+
+            definition.NumberOfPictures = 110;
+
+            for (int pic = 0; pic < 110; pic++)
+            {
+                definition.Pictures[pic] = new System.Drawing.Bitmap(14, 16);
+                g = Graphics.FromImage(definition.Pictures[pic]);
+
+                g.Clear(Color.Black);
+
+                ypos = 0;
+                curAddress = 0x22040 + pic * 32;
+
+                for (int i = 0; i < 8; i++)
+                {
+                    RenderBytesApple(g, file.ReadByte(curAddress + i), file.ReadByte(curAddress + i + 8), ypos + i, paletteSize, paletteMask);
+                    RenderBytesApple(g, file.ReadByte(curAddress + i + 16), file.ReadByte(curAddress + i + 24), ypos + 8 + i, paletteSize, paletteMask);
+                }
+            }
+            if (paletteSize == 6)
+            {
+                definition.PaletteSize = 6;
+                definition.Colors[0] = (SolidBrush)palette[colorLookup[0]];
+                definition.Colors[1] = (SolidBrush)palette[colorLookup[1]];
+                definition.Colors[2] = (SolidBrush)palette[colorLookup[2]];
+                definition.Colors[3] = (SolidBrush)palette[colorLookup[3]];
+                definition.Colors[4] = (SolidBrush)palette[colorLookup[5]];
+                definition.Colors[5] = (SolidBrush)palette[colorLookup[6]];
+                definition.ColorNames[0] = paletteNames[colorLookup[0]];
+                definition.ColorNames[1] = paletteNames[colorLookup[1]];
+                definition.ColorNames[2] = paletteNames[colorLookup[2]];
+                definition.ColorNames[3] = paletteNames[colorLookup[3]];
+                definition.ColorNames[4] = paletteNames[colorLookup[5]];
+                definition.ColorNames[5] = paletteNames[colorLookup[6]];
+            }
+            else
+            {
+                definition.PaletteSize = 4;
+                if (paletteMask == 0x00)
+                {
+                    definition.Colors[0] = (SolidBrush)palette[colorLookup[0]];
+                    definition.Colors[1] = (SolidBrush)palette[colorLookup[1]];
+                    definition.Colors[2] = (SolidBrush)palette[colorLookup[2]];
+                    definition.Colors[3] = (SolidBrush)palette[colorLookup[3]];
+                    definition.ColorNames[0] = paletteNames[colorLookup[0]];
+                    definition.ColorNames[1] = paletteNames[colorLookup[1]];
+                    definition.ColorNames[2] = paletteNames[colorLookup[2]];
+                    definition.ColorNames[3] = paletteNames[colorLookup[3]];
+                }
+                else
+                {
+                    definition.Colors[0] = (SolidBrush)palette[colorLookup[0]];
+                    definition.Colors[1] = (SolidBrush)palette[colorLookup[5]];
+                    definition.Colors[2] = (SolidBrush)palette[colorLookup[6]];
+                    definition.Colors[3] = (SolidBrush)palette[colorLookup[3]];
+                    definition.ColorNames[0] = paletteNames[colorLookup[0]];
+                    definition.ColorNames[1] = paletteNames[colorLookup[5]];
+                    definition.ColorNames[2] = paletteNames[colorLookup[6]];
+                    definition.ColorNames[3] = paletteNames[colorLookup[3]];
+                }
+            }
+        }
+
+        public void LoadPicturesAmiga(GameDefinition definition)
+        {
+            if (definition == null) throw new ArgumentNullException("definition");
+
+            int ypos;
+            int xpos;
+
+            Graphics g;
+
+            SetupPaletteAmiga(definition);
+
+            definition.NumberOfPictures = 110;
+
+            int[] BPAddr = new int[5] { 0x40, 0xE00, 0x1BC0, 0x2980, 0x3740 };
+            byte[] b1 = new byte[5];
+            byte[] b2 = new byte[5];
+            int offset = 0;
+
+            for (int pic = 0; pic < 110; pic++)
+            {
+                definition.Pictures[pic] = new System.Drawing.Bitmap(16, 16);
+                g = Graphics.FromImage(definition.Pictures[pic]);
+
+                g.Clear(definition.Colors[0].Color);
+
+                xpos = 0;
+
+                if (pic > 54) offset = 1650;
+
+                for (ypos = 0; ypos < 16; ypos++)
+                {
+                    for (int j = 0; j < 5; j++)
+                    {
+                        b1[j] = file.ReadByte(BPAddr[j] + offset + pic*2 + ypos*110);
+                        b2[j] = file.ReadByte(BPAddr[j] + offset + pic*2 + ypos*110 + 1);
+                    }
+                    RenderBytesAmiga(g, b1, xpos, ypos);
+                    RenderBytesAmiga(g, b2, xpos + 8, ypos);
+                }
+            }
+        }
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly")]
-        public void RenderByte(Graphics gr, byte b, int x, int y)
+        public void RenderBytePC(Graphics gr, byte b, int x, int y)
         {
             if (x > 32) throw new ArgumentOutOfRangeException("x");
             if (y > 32) throw new ArgumentOutOfRangeException("y");
 
-            byte c = 0;
+            byte c;
            
             c = (byte)((b & 0xC0) >> 6);
             Plot(gr, x, y, c);
@@ -565,7 +893,7 @@ namespace AcsLib
             if (x > 32) throw new ArgumentOutOfRangeException("x");
             if (y > 32) throw new ArgumentOutOfRangeException("y");
 
-            byte c = 0;
+            byte c;
 
             c = (byte)((b & 0xC0) >> 6);
             Plot(gr, x, y, c);
@@ -582,6 +910,70 @@ namespace AcsLib
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly")]
+        public void RenderBytesApple(Graphics gr, byte b1, byte b2, int y, int paletteSize, byte paletteMask)
+        {
+            if (y > 16) throw new ArgumentOutOfRangeException("y");
+
+            int d;
+            byte c, h1, h2, h3;
+
+            if (paletteSize == 4)
+            {
+                h1 = paletteMask;
+                h2 = paletteMask;
+            } else
+            {
+                h1 = (byte)((b1 & 0x80) >> 5);
+                h2 = (byte)((b2 & 0x80) >> 5);
+            }
+            h3 = (byte)(h2 * 2 + h1);
+            d = (int)(((b2 & 0x7f) << 7) + (b1 & 0x7f)); // throw away high bits of both bytes
+            c = (byte)(h1 + (d & 0x03));
+            Plot(gr, 0, y, c);
+            Plot(gr, 1, y, c);
+            c = (byte)(h1 + ((d & 0x0C) >> 2));
+            Plot(gr, 2, y, c);
+            Plot(gr, 3, y, c);
+            c = (byte)(h1 + ((d & 0x30) >> 4));
+            Plot(gr, 4, y, c);
+            Plot(gr, 5, y, c);
+            c = (byte)ac[(h3 + ((d & 0xC0) >> 6))];
+            //c = (byte)(h3 + ((d & 0xC0) >> 6));
+            Plot(gr, 6, y, c);
+            Plot(gr, 7, y, c);
+            c = (byte)(h2 + ((d & 0x300) >> 8));
+            Plot(gr, 8, y, c);
+            Plot(gr, 9, y, c);
+            c = (byte)(h2 + ((d & 0xC00) >> 10));
+            Plot(gr, 10, y, c);
+            Plot(gr, 11, y, c);
+            c = (byte)(h2 + ((d & 0x3000) >> 12));
+            Plot(gr, 12, y, c);
+            Plot(gr, 13, y, c);
+            return;
+        }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly")]
+        public void RenderBytesAmiga(Graphics gr, byte[] b, int x, int y)
+        {
+            if (x > 32) throw new ArgumentOutOfRangeException("x");
+            if (y > 32) throw new ArgumentOutOfRangeException("y");
+
+            byte c, p;
+
+            for (byte i = 0; i < 8; i++)
+            {
+                c = 0;
+                p = (byte)(7 - i);
+                for (int j = 0; j < 5; j++)
+                {
+                    c |= (byte)(b[j].Field(p, p) << j);
+                }
+                Plot(gr, x + i, y, c);
+            }
+        }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly")]
         private void Plot(Graphics gr, int x, int y, byte c)
         {
             gr.FillRectangle(palette[colorLookup[c]], x, y, 1, 1);
@@ -595,11 +987,14 @@ namespace AcsLib
         {
             if (definition == null) throw new ArgumentNullException("definition");
 
-            definition.WorldMapName = TextDecoder.DecodeAscii(file.ReadBlock(0x1C42D, 22)).TrimEnd();
-            definition.WorldMapStartX = file.ReadByte(0x1C7A0);
-            definition.WorldMapStartY = file.ReadByte(0x1C7A1);
+            int AdventureAddress = Addresses[(int)AddressLabels.AdventureData];
+            int WorldMapAddress = Addresses[(int)AddressLabels.WorldMap];
+            definition.WorldMapName = TextDecoder.DecodeAscii(file.ReadBlock(AdventureAddress + 0x22D, 22)).TrimEnd();
+            definition.WorldMapStartX = file.ReadByte(WorldMapAddress + 0xA0);
+            definition.WorldMapStartY = file.ReadByte(WorldMapAddress + 0xA1);
+            definition.TypeWorldMapWrap = (GameDefinition.WorldMapWrapType)file.ReadByte(AdventureAddress + 0x22C);
 
-            int srcAddress = 0x1C7EA;
+            int srcAddress = WorldMapAddress + 0xEA;
 
             for (int y = 0; y < 40; y++)
             {
@@ -617,7 +1012,7 @@ namespace AcsLib
         {
             if (definition == null) throw new ArgumentNullException("definition");
 
-            int address = 0x1C720;
+            int address = Addresses[(int)AddressLabels.WorldMap] + 0x20;
             byte b;
 
             for (int i = 0; i < 32; i++)
@@ -659,16 +1054,20 @@ namespace AcsLib
         {
             if (definition == null) throw new System.ArgumentException("definiton cannot be null");
 
+            int WorldMapAddress = Addresses[(int)AddressLabels.WorldMap];
+
             for (int i = 0; i < 16; i++)
             {
-                int address = 0x1c700 + (i * 2);
-                Terrain terr = new Terrain();
-                terr.TerrainNumber = i;
+                int address = WorldMapAddress + (i * 2);
                 byte b = file.ReadByte(address);
-                terr.Picture = b & 0x1F;
-                terr.TypeOfTerrain = (Terrain.TerrainType)b.Field(6, 7);
-                terr.TypeParameter = file.ReadByte(address + 1);
-                terr.Name = TextDecoder.DecodeAscii(file.ReadBlock(0x1CD62 + (15 * i), 15)).Trim();
+                Terrain terr = new Terrain
+                {
+                    TerrainNumber = i,
+                    Picture = b & 0x1F,
+                    TypeOfTerrain = (Terrain.TerrainType)b.Field(6, 7),
+                    TypeParameter = file.ReadByte(address + 1),
+                    Name = TextDecoder.DecodeAscii(file.ReadBlock(WorldMapAddress + 0x662 + (15 * i), 15)).Trim()
+                };
                 definition.TerrainTypes[i] = terr;
             }
         }
@@ -681,15 +1080,40 @@ namespace AcsLib
         {
             if (definition == null) throw new System.ArgumentException("definiton cannot be null");
 
-            definition.NumberOfRegions = file.ReadByte(0x1C229);
+            int AdventureAddress = Addresses[(int)AddressLabels.AdventureData];
+            int RegionAddress = Addresses[(int)AddressLabels.Regions];
+
+            definition.NumberOfRegions = file.ReadByte(AdventureAddress + 0x29);
             for (int i = 0; i < definition.NumberOfRegions; i++)
             {
-                definition.Regions[i] = new Region();
-                definition.Regions[i].Name = TextDecoder.DecodeAscii(file.ReadBlock(0x1C441 + (20 * i), 20)).Trim();
-                definition.Regions[i].Number = i;
+                definition.Regions[i] = new Region
+                {
+                    Name = TextDecoder.DecodeAscii(file.ReadBlock(AdventureAddress + 0x241 + (20 * i), 20)).Trim(),
+                    Number = i
+                };
                 LoadRooms(definition, definition.Regions[i]);
 
-                int addr = 0x1D300 + i * 0xC00;
+                int addr = RegionAddress + i * 0xC00;
+                // Store Items
+                byte[] data = file.ReadBlock(addr + 0x6D, 0x0e);
+                int num = 1;
+                for (int idx = 0; idx < 8; idx++)
+                {
+                    definition.Regions[i].StoreItems[num] = data[idx].Field(6, 7);
+                    definition.Regions[i].StoreItems[num + 1] = data[idx].Field(4, 5);
+                    definition.Regions[i].StoreItems[num + 2] = data[idx].Field(2, 3);
+                    definition.Regions[i].StoreItems[num + 3] = data[idx].Field(0, 1);
+                    num += 4;
+                }
+                for (int idx = 8; idx < 14; idx++)
+                {
+                    for (byte b = 7; b < 8; b--)
+                    {
+                        definition.Regions[i].StoreItems[num++] = data[idx].Field(b, b);
+                    }
+
+                }
+
                 definition.Regions[i].E3 = file.ReadByte(addr + 0x4e3);
                 definition.Regions[i].E4 = file.ReadByte(addr + 0x4e4);
             }
@@ -700,27 +1124,29 @@ namespace AcsLib
             if (definition == null) throw new System.ArgumentException("definiton cannot be null");
             if (region == null) throw new System.ArgumentException("region cannot be null");
 
-            int addr = 0x1D300 + region.Number * 0xC00;
+            int addr = Addresses[(int)AddressLabels.Regions] + region.Number * 0xC00;
             region.NumberOfRooms = file.ReadByte(addr);
 
             byte[] data;
 
-            data = file.ReadBlock(addr, 0x08);
+            //data = file.ReadBlock(addr, 0x08);
 
             for (int i = 0; i < 16; i++)
             {
-                Room room = new Room();
-                room.Number = (region.Number * 16) + i + 16;
-                room.Name = TextDecoder.DecodePacked(file.ReadBlock(addr + 0x3F3 + (10 * i), 10)).Trim();
-
                 data = file.ReadBlock(addr + 0x09 + (i * 5), 5);
-                room.WallPicture = data[0];
-                room.XPosition = data[2];
-                room.YPosition = data[3];
-                room.Width = data[1].Field(4, 7);
-                room.Height = data[1].Field(0, 3);
+                Room room = new Room
+                {
+                    Number = (region.Number * 16) + i + 16,
+                    Name = TextDecoder.DecodePacked(file.ReadBlock(addr + 0x3F3 + (10 * i), 10)).Trim(),
 
-                room.Deleted = false;
+                    WallPicture = data[0],
+                    XPosition = data[2],
+                    YPosition = data[3],
+                    Width = data[1].Field(4, 7),
+                    Height = data[1].Field(0, 3),
+
+                    Deleted = false
+                };
                 if (room.Width == 0 && room.Height == 0) room.Deleted = true;
 
                 room.Width += 1;
@@ -736,7 +1162,7 @@ namespace AcsLib
             LoadRandomCreatures(region);
             LoadResidentCreatures(region);
 
-            data = file.ReadBlock(addr, 0x9);
+            //data = file.ReadBlock(addr, 0x9);
         }
 
 
@@ -744,7 +1170,7 @@ namespace AcsLib
         {
             if (region == null) throw new System.ArgumentException("region cannot be null");
 
-            int regionAddr = (0x1D300 + region.Number * 0xC00);
+            int regionAddr = (Addresses[(int)AddressLabels.Regions] + region.Number * 0xC00);
 
             byte b = file.ReadByte(regionAddr + 7);
 
@@ -761,7 +1187,7 @@ namespace AcsLib
         {
             if (region == null) throw new System.ArgumentException("region cannot be null");
 
-            int addr = (0x1D300 + region.Number * 0xC00);
+            int addr = (Addresses[(int)AddressLabels.Regions] + region.Number * 0xC00);
 
             for (int i = 0; i < 8; i++)
             {
@@ -776,12 +1202,15 @@ namespace AcsLib
             if (definition == null) throw new System.ArgumentException("definiton cannot be null");
             if (region == null) throw new System.ArgumentException("region cannot be null");
 
-            int addr = (0x1D300 + region.Number * 0xC00);
+            int WorldMapAddress = Addresses[(int)AddressLabels.WorldMap];
+            int RegionAddress = Addresses[(int)AddressLabels.Regions];
+
+            int addr = (RegionAddress + region.Number * 0xC00);
             int itemPointer = file.ReadByte(addr + 0x07) + (file.ReadByte(addr + 0x08) * 256);
 
             addr = addr + 0x3F3 + itemPointer;
 
-            int byteCount = 0;
+            int byteCount;
             byte b;
 
             for (int roomnum = 0; roomnum < region.Rooms.Count(); roomnum++)
@@ -812,9 +1241,9 @@ namespace AcsLib
                             item.Item = definition.Things[item.ItemNumber - 1];
                             if (item.Item.TypeOfThing == Thing.ThingType.Portal)
                             {
-                                int portalAddr = (0x1D300 + region.Number * 0xC00) + 0x4e3;
+                                int portalAddr = (RegionAddress + region.Number * 0xC00) + 0x4e3;
 
-                                portalAddr = portalAddr + (item.Parameter * 2);
+                                portalAddr += (item.Parameter * 2);
 
                                 item.PortalDestinationRegion = file.ReadByte(portalAddr).Field(4, 7);
                                 item.PortalDestinationRoom = file.ReadByte(portalAddr).Field(0, 3);
@@ -826,7 +1255,7 @@ namespace AcsLib
                                     if (item.PortalDestinationRegion == 0)
                                     {
 
-                                        int baseAddr = 0x1c720;
+                                        int baseAddr = WorldMapAddress + 0x20;
                                         int p = ((item.PortalDestinationY) & 0x0F) + ((item.PortalDestinationX & 0x0F) << 4);
 
                                         item.WorldMapDestination = true;
@@ -857,7 +1286,7 @@ namespace AcsLib
             int addr;
             for (int i = 0; i < 8; i++)
             {
-                addr = 0x19300 + (i * 15);
+                addr = Addresses[(int)AddressLabels.Creatures] + (i * 15);
                 byte[] buf = file.ReadBlock(addr, 15);
                 definition.CreatureClassNames[i] = TextDecoder.DecodeAscii(buf).TrimEnd();
             }
@@ -886,7 +1315,14 @@ namespace AcsLib
             // Other properties
             data = file.ReadBlock(propertiesAddress, 37);
 
-            cr.Picture = (byte)(data[0x16] - 2);
+            if ((data[0x00] == 0) || (data[0x16] == 0))
+            {
+                cr.InUse = false;
+            }
+            else
+            {
+                cr.Picture = (byte)(data[0x16] - 2);
+            }
             cr.Constitution = data[0x00].Field(0, 5);
             cr.SpecialDefense = (Creature.DefenseType)(data[0x00].Field(6, 7));
             cr.Strength = data[0x01].Field(0, 4);
@@ -940,18 +1376,130 @@ namespace AcsLib
         {
             if (definition == null) throw new System.ArgumentException("definiton cannot be null");
 
+            int CreatureAddress = Addresses[(int)AddressLabels.Creatures];
+
             Creature cr;
 
             for (int i = 0; i < 128; i++)
             {
 
-                int addr = 0x19400 + ((i / 6) * 0x100) + ((i % 6) * 37);
+                int addr = CreatureAddress + 0x100 + ((i / 6) * 0x100) + ((i % 6) * 37);
 
-                cr = LoadCreature(0x1B280 + (i * 0x0A), 0x1B200 + i, addr);
+                cr = LoadCreature(CreatureAddress + 0x1F80 + (i * 0x0A), CreatureAddress + 0x1F00 + i, addr);
 
                 // Add to list
                 definition.CreatureList.Add(cr);
             }
+        }
+
+        private void LoadPlayers(GameDefinition definition)
+        {
+            if (definition == null) throw new System.ArgumentException("definiton cannot be null");
+
+            int PlayerAddress = Addresses[(int)AddressLabels.AdventureData] + 0x2B;
+
+            WorldMapCreature wmc;
+            Creature cr;
+
+            int pc = 0; // player count
+
+            for (int i = 0; i < 4; i++)
+            {
+
+                int addr = PlayerAddress + (i * 37);
+
+                cr = LoadCreature(PlayerAddress + 0x94 + (i * 0x0A), 0, addr);
+
+                if (cr.InUse == true)
+                {
+                    // Add to list
+
+                    string PlayerAppearingIn = "";
+                    if (cr.Region == 0)
+                    {
+                        PlayerAppearingIn = string.Format("World Map {0},{1}", 
+                            cr.XPosition, cr.YPosition);
+                    }
+                    else
+                    {
+                        Region PlayerRegion = definition.Regions[cr.Region - 1];
+                        //PlayerAppearingIn = PlayerRegion.Name;
+                        foreach (Room PlayerRoom in PlayerRegion.Rooms)
+                        {
+                            if (PlayerRoom.Number == ((cr.Region * 16) + cr.Room))
+                            {
+                                PlayerAppearingIn = string.Format("Region {0}, Room {1}, {2},{3}", 
+                                      definition.Regions[cr.Region - 1]
+                                    , definition.Regions[cr.Region - 1].Rooms[cr.Room]
+                                    , cr.XPosition, cr.YPosition);
+                            }
+                        }
+                    }
+                    wmc = new WorldMapCreature
+                    {
+                        Creature = cr,
+                        ChanceAppearing = 100,
+                        AppearingIn = PlayerAppearingIn
+                    };
+                    definition.ActivePlayers.Add(wmc);
+                    if (cr.Region == 0)
+                    {
+                        definition.WorldMapPlayers.Add(wmc);
+                    }
+                    else
+                    {
+                        Region region = definition.Regions[cr.Region - 1];
+                        foreach (Room PlayerRoom in region.Rooms)
+                        {
+                            if (PlayerRoom.Number == (cr.Region * 16) + cr.Room)
+                            {
+                                PlayerRoom.RoomPlayers.Add(wmc);
+                            }
+                        }
+                    }
+                    pc++;
+                }
+
+            }
+            definition.ActivePlayerCount = pc;
+
+            pc = 0;
+            PlayerAddress = Addresses[(int)AddressLabels.Creatures] + 0x1700;
+            int i1 = 0, i2 = 0, j1 = 0, j2 = 0;
+
+            cr = LoadCreature(PlayerAddress, 0, PlayerAddress + 0x200);
+            while (cr.InUse)
+            {
+                wmc = new WorldMapCreature
+                {
+                    Creature = cr,
+                    ChanceAppearing = 0,
+                    AppearingIn = "In Retirement"
+                };
+                definition.RetiredPlayers.Add(wmc);
+                pc++;
+
+                if (pc > 33)
+                {
+                    break;
+                }
+
+                i1++;
+                if (i1 > 25)
+                {
+                    i1 = 0;
+                    j1++;
+                }
+                i2++;
+                if (i2 > 6)
+                {
+                    i2 = 0;
+                    j2++;
+                }
+
+                cr = LoadCreature(PlayerAddress + j1*0x100 + i1*0xA, 0, PlayerAddress + 0x200 + j2*0x100 + i2*0x25);
+            }
+            definition.RetiredPlayerCount = pc;
         }
 
         #endregion

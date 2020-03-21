@@ -73,6 +73,7 @@
             this.UIBumpActionLabel = new System.Windows.Forms.Label();
             this.UIBumpAction = new System.Windows.Forms.TextBox();
             this.UIDestroysThing = new System.Windows.Forms.CheckBox();
+            this.UIThingNum = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.thingBindingSource)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.UIPictureDisplay)).BeginInit();
             this.SuspendLayout();
@@ -171,12 +172,14 @@
             // UISpellCastMessage
             // 
             this.UISpellCastMessage.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.thingBindingSource, "SpellCastMessage", true));
-            this.UISpellCastMessage.Location = new System.Drawing.Point(21, 467);
+            this.UISpellCastMessage.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.UISpellCastMessage.Location = new System.Drawing.Point(24, 467);
             this.UISpellCastMessage.Multiline = true;
             this.UISpellCastMessage.Name = "UISpellCastMessage";
             this.UISpellCastMessage.ReadOnly = true;
-            this.UISpellCastMessage.Size = new System.Drawing.Size(478, 51);
+            this.UISpellCastMessage.Size = new System.Drawing.Size(290, 51);
             this.UISpellCastMessage.TabIndex = 66;
+            this.UISpellCastMessage.WordWrap = false;
             // 
             // UISpellCastLabel
             // 
@@ -306,7 +309,7 @@
             // UIPicture
             // 
             this.UIPicture.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.thingBindingSource, "Picture", true));
-            this.UIPicture.Location = new System.Drawing.Point(209, 68);
+            this.UIPicture.Location = new System.Drawing.Point(209, 66);
             this.UIPicture.Name = "UIPicture";
             this.UIPicture.ReadOnly = true;
             this.UIPicture.Size = new System.Drawing.Size(100, 20);
@@ -444,12 +447,14 @@
             // UIWhyCantPassMessage
             // 
             this.UIWhyCantPassMessage.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.thingBindingSource, "WhyCannotPassMessage", true));
+            this.UIWhyCantPassMessage.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.UIWhyCantPassMessage.Location = new System.Drawing.Point(24, 400);
             this.UIWhyCantPassMessage.Multiline = true;
             this.UIWhyCantPassMessage.Name = "UIWhyCantPassMessage";
             this.UIWhyCantPassMessage.ReadOnly = true;
-            this.UIWhyCantPassMessage.Size = new System.Drawing.Size(478, 47);
+            this.UIWhyCantPassMessage.Size = new System.Drawing.Size(290, 47);
             this.UIWhyCantPassMessage.TabIndex = 79;
+            this.UIWhyCantPassMessage.WordWrap = false;
             // 
             // UIWhyCantPassLabel
             // 
@@ -489,11 +494,22 @@
             this.UIDestroysThing.Text = "Destroys Thing Allowing Passage";
             this.UIDestroysThing.UseVisualStyleBackColor = true;
             // 
+            // UIThingNum
+            // 
+            this.UIThingNum.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.thingBindingSource, "Number", true));
+            this.UIThingNum.Enabled = false;
+            this.UIThingNum.Location = new System.Drawing.Point(316, 66);
+            this.UIThingNum.Name = "UIThingNum";
+            this.UIThingNum.ReadOnly = true;
+            this.UIThingNum.Size = new System.Drawing.Size(81, 20);
+            this.UIThingNum.TabIndex = 83;
+            // 
             // ThingViewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(530, 606);
+            this.Controls.Add(this.UIThingNum);
             this.Controls.Add(this.UIDestroysThing);
             this.Controls.Add(this.UIBumpAction);
             this.Controls.Add(this.UIBumpActionLabel);
@@ -594,5 +610,6 @@
         private System.Windows.Forms.Label UIBumpActionLabel;
         private System.Windows.Forms.TextBox UIBumpAction;
         private System.Windows.Forms.CheckBox UIDestroysThing;
+        private System.Windows.Forms.TextBox UIThingNum;
     }
 }

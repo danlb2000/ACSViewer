@@ -46,25 +46,32 @@ namespace AcsLib
         {   
             
             [DescriptionAttribute("Invoke spell when thing dropped here"),
-             UsageDescriptionAttribute("Spell if one drops a ")]
+             UsageDescriptionAttribute("Spell if one drops a {0} - {1}")]
             InvokeDropHere = 0,
-            [DescriptionAttribute("Invoke spell when someone moves here")]
+            [DescriptionAttribute("Invoke spell when someone moves here"),
+             UsageDescriptionAttribute("Spell if you move here")]
             InvokeMoveHere = 1,
-            [DescriptionAttribute("Open to owner of a specific thing")]
+            [DescriptionAttribute("Open to owner of a specific thing"),
+             UsageDescriptionAttribute("Open if you have a {0} - {1}")]
             SpecificItem = 2,
-            [DescriptionAttribute("Open to those who don't own a")]
+            [DescriptionAttribute("Open to those who don't own a"),
+             UsageDescriptionAttribute("Open if you don't have a {0} - {1}")]
             DoesNotOwn = 3
         }
 
         public enum PortalAccessType : int
         {
-            [DescriptionAttribute("Anyone may pass, no spell invoked")]
+            [DescriptionAttribute("Anyone may pass, no spell invoked"),
+             UsageDescriptionAttribute("")]
             AnyoneMayPass = 0,
-            [DescriptionAttribute("Invoke spell when someone moves here")]
+            [DescriptionAttribute("Invoke spell when someone moves here"),
+             UsageDescriptionAttribute("")]
             InvokeSpell = 1,
-            [DescriptionAttribute("Open to owner of a specific item")]
+            [DescriptionAttribute("Open to owner of a specific item"),
+             UsageDescriptionAttribute("")]
             SpecificItem = 2,
-            [DescriptionAttribute("Open to those who don't own a")]
+            [DescriptionAttribute("Open to those who don't own a"),
+             UsageDescriptionAttribute("")]
             DoNotOwn = 3
         }
 
@@ -173,24 +180,60 @@ namespace AcsLib
 
         public override string ToString()
         {
-            return string.Format(CultureInfo.CurrentCulture, "({0}) {1}", Number, Name);
+            return string.Format(CultureInfo.CurrentCulture, "({0} - {1}) {1}", Number, Name);
         }
 
-        public string[] Description()
-        {
-            var lines = new string[3];
-            lines[0] = "";
-            lines[1] = "";
-            lines[2] = "";
+        //public string[] Description()
+        //{
+        //    var lines = new string[3];
+        //    lines[0] = "";
+        //    lines[1] = "";
+        //    lines[2] = "";
 
+        //    switch (this.TypeOfThing)
+        //    {
+        //        case ThingType.CustomSpace:
+        //            lines[0] = String.Format(CultureInfo.CurrentCulture,CustomSpaceAccess.UsageDescription(),"test");
+        //            break;
+        //    }
+         
+        //    return lines;
+        //}
+
+        public string GetUsageDescription()
+        {
+            string desc = "";
             switch (this.TypeOfThing)
             {
+                case ThingType.Portal:
+                    desc = PortalAccess.UsageDescription();
+                    break;
                 case ThingType.CustomSpace:
-                    lines[0] = String.Format(CultureInfo.CurrentCulture,CustomSpaceAccess.UsageDescription(),"test");
+                case ThingType.CustomObstacle:
+                    if (ChooseWhenPutIntoRoom == ChooseWhenPutIntoRoomType.Object)
+                    {
+                        desc = CustomSpaceAccess.UsageDescription();
+                    }
+                    if (ChooseWhenPutIntoRoom == ChooseWhenPutIntoRoomType.SpellModifier)
+                    {
+                        switch (Action.ParameterType)
+                        {
+                            case SpellAction.ActionParameterType.Music:
+                                desc = "Play music: {0} - {1}";
+                                break;
+                            case SpellAction.ActionParameterType.VictimStat:
+                            case SpellAction.ActionParameterType.ChangeLifeForcePower:
+                                desc = Action.ActionTypeDescription + " ({0}): {1}";
+                                break;
+                            case SpellAction.ActionParameterType.Creature:
+                            case SpellAction.ActionParameterType.Item:
+                                desc = Action.ActionTypeDescription + " {0} - {1}";
+                                break;
+                        }
+                    }
                     break;
             }
-         
-            return lines;
+            return desc;
         }
     }
 }

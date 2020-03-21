@@ -22,11 +22,11 @@ namespace AcsLib
 {
     public static class TextDecoder
     {   
-        static string[] characters = {" ","A","B","C","D","E","F","G", 
+        static readonly string[] characters = {" ","A","B","C","D","E","F","G", 
                                "H","I","J","K","L","M","N","O",
                                "P","Q","R","S","T","U","V","W",
                                "X","Y","Z","1","2","3","4","5",
-                               "6","7","8","9"," "," "," ","'"};
+                               "6","7","8","9",".",",","-","'"};
 
         public static string DecodeAscii(byte[] data)
         {

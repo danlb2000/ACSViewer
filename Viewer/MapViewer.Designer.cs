@@ -33,6 +33,9 @@
             this.label1 = new System.Windows.Forms.Label();
             this.UIDestination = new System.Windows.Forms.TextBox();
             this.UIMapName = new System.Windows.Forms.TextBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.UIMapWrap = new System.Windows.Forms.TextBox();
+            this.UIPlayers = new System.Windows.Forms.ListBox();
             ((System.ComponentModel.ISupportInitialize)(this.UIMap)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.UIPortalNumber)).BeginInit();
             this.SuspendLayout();
@@ -84,11 +87,41 @@
             this.UIMapName.Size = new System.Drawing.Size(630, 20);
             this.UIMapName.TabIndex = 4;
             // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(13, 615);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(134, 13);
+            this.label2.TabIndex = 5;
+            this.label2.Text = "Movement off edge of map";
+            // 
+            // UIMapWrap
+            // 
+            this.UIMapWrap.Location = new System.Drawing.Point(12, 631);
+            this.UIMapWrap.Name = "UIMapWrap";
+            this.UIMapWrap.ReadOnly = true;
+            this.UIMapWrap.Size = new System.Drawing.Size(630, 20);
+            this.UIMapWrap.TabIndex = 6;
+            // 
+            // UIPlayers
+            // 
+            this.UIPlayers.FormattingEnabled = true;
+            this.UIPlayers.Location = new System.Drawing.Point(649, 6);
+            this.UIPlayers.Name = "UIPlayers";
+            this.UIPlayers.Size = new System.Drawing.Size(147, 212);
+            this.UIPlayers.TabIndex = 7;
+            this.UIPlayers.SelectedIndexChanged += new System.EventHandler(this.UIPlayers_SelectedIndexChanged);
+            this.UIPlayers.DoubleClick += new System.EventHandler(this.UIPlayers_DoubleClick);
+            // 
             // MapViewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(653, 623);
+            this.ClientSize = new System.Drawing.Size(803, 662);
+            this.Controls.Add(this.UIPlayers);
+            this.Controls.Add(this.UIMapWrap);
+            this.Controls.Add(this.label2);
             this.Controls.Add(this.UIMapName);
             this.Controls.Add(this.UIDestination);
             this.Controls.Add(this.label1);
@@ -112,5 +145,8 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox UIDestination;
         private System.Windows.Forms.TextBox UIMapName;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.TextBox UIMapWrap;
+        private System.Windows.Forms.ListBox UIPlayers;
     }
 }

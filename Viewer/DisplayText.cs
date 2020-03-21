@@ -32,7 +32,11 @@ namespace AcsViewer
 
         private void DisplayText_Load(object sender, EventArgs e)
         {
-            UIText.Text = Message;
+            UIText.Text = Message.Substring(0, 32);
+            for (int i = 1; i < 8; i++)
+            {
+                UIText.AppendText("\r\n" + Message.Substring(i * 32, 32));
+            }
             this.Text = Title;
         }
     }

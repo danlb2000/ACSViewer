@@ -38,7 +38,8 @@ namespace AcsViewer
             {
                 Creature = MapCreature.Creature;
                 UIPercentChance.Text = string.Format("{0}%", MapCreature.ChanceAppearing);
-                UITerrain.Text = Definition.TerrainTypes[MapCreature.AppearingInTerrain].Name;
+                //UITerrain.Text = Definition.TerrainTypes[MapCreature.AppearingInTerrain].Name;
+                UITerrain.Text = MapCreature.AppearingIn;
             }
 
             this.Text = Creature.Name;
@@ -59,6 +60,7 @@ namespace AcsViewer
             if (creature == null) return;
 
             UIClass.Text = Definition.CreatureClassNames[creature.Class];
+            if (MapCreature != null) UIClass.Text = "Map Creature";
             if (creature.ReadiedArmor > 0) UIReadiedArmor.Text = Definition.Things[creature.ReadiedArmor - 1].Name;
             if (creature.ReadiedWeapon > 0) UIReadiedWeapon.Text = Definition.Things[creature.ReadiedWeapon - 1].Name;
         }

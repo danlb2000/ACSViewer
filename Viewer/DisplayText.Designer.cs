@@ -33,19 +33,19 @@
             // 
             // UIText
             // 
-            this.UIText.Enabled = false;
+            this.UIText.Font = new System.Drawing.Font("Courier New", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.UIText.Location = new System.Drawing.Point(4, 3);
             this.UIText.Multiline = true;
             this.UIText.Name = "UIText";
-            this.UIText.ReadOnly = true;
-            this.UIText.Size = new System.Drawing.Size(564, 417);
+            this.UIText.Size = new System.Drawing.Size(233, 130);
             this.UIText.TabIndex = 0;
+            this.UIText.WordWrap = false;
             // 
             // DisplayText
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(570, 439);
+            this.ClientSize = new System.Drawing.Size(242, 135);
             this.Controls.Add(this.UIText);
             this.Name = "DisplayText";
             this.Text = "DisplayText";

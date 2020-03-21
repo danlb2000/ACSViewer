@@ -515,7 +515,7 @@
             this.UITerrain.Location = new System.Drawing.Point(166, 550);
             this.UITerrain.Name = "UITerrain";
             this.UITerrain.ReadOnly = true;
-            this.UITerrain.Size = new System.Drawing.Size(121, 20);
+            this.UITerrain.Size = new System.Drawing.Size(300, 20);
             this.UITerrain.TabIndex = 135;
             // 
             // UITerrainLabel

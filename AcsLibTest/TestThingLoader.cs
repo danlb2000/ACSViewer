@@ -77,7 +77,7 @@ namespace AcsLibTest
             Assert.AreEqual(300, definition.Things[5].Value, "Thing 6 value wrong");
             Assert.AreEqual(7, definition.Things[5].AcsMayAdd, "Thing 6 ACS may add wrong");
             Assert.AreEqual(41, definition.Things[5].Picture, "Thing 6 picture wrong");
-            Assert.AreEqual("  THE JEWEL SPARKLES ENTICINGLY WITH A   LOVELY BRILLIANCE.  YOU FEEL ENTRANCED  AND RELUCTANT TO TRAVEL ANY FURTHER.   ", definition.Things[5].SpellCastMessage, "Spell cast message");
+            Assert.AreEqual("  THE JEWEL SPARKLES ENTICINGLY WITH A  \r\n LOVELY BRILLIANCE.  YOU FEEL ENTRANCED \r\n AND RELUCTANT TO TRAVEL ANY FURTHER.   ", definition.Things[5].SpellCastMessage, "Spell cast message");
             Assert.IsFalse(definition.Things[5].DisappearsAfterUser, "Thing 6 disappears after use wrong");
             Assert.AreEqual(SpellAction.SpellActionType.DecreaseStat, definition.Things[5].Action.TypeOfSpellAction, "Thing 6 spell action wrong");
             Assert.AreEqual(3, definition.Things[5].Action.Parameter, "Thing 6 action parameter wrong");
@@ -173,7 +173,7 @@ namespace AcsLibTest
             Assert.AreEqual(SpellAction.SpellActionType.DecreaseStat, definition.Things[8].Action.TypeOfSpellAction, "Thing 9 spell action wrong");
             Assert.IsTrue(definition.Things[8].DisappearsAfterUser, "Thing 9 disappears after use wrong");
             Assert.AreEqual(3, definition.Things[8].Action.Parameter, "Thing 9 action parameter wrong");
-            Assert.AreEqual("   THE WITHERING GAZE OF THE HORRIBLE     BEAST MAKES YOUR BLOOD RUN COLD AND     YOUR LIMBS STIFFEN IN SHEER TERROR.   ", definition.Things[8].SpellCastMessage, "Spell cast message wrong");
+            Assert.AreEqual("   THE WITHERING GAZE OF THE HORRIBLE   \r\n  BEAST MAKES YOUR BLOOD RUN COLD AND   \r\n  YOUR LIMBS STIFFEN IN SHEER TERROR.   ", definition.Things[8].SpellCastMessage, "Spell cast message wrong");
 
             Assert.AreEqual(-2, definition.Things[15].Action.ChangeAmount, "Thing 16 ChangeAmount wrong");
             Assert.IsFalse(definition.Things[15].Action.ChangeTemporary, "Thing 15 ChangeTrmporary wrong");
@@ -211,7 +211,7 @@ namespace AcsLibTest
             Assert.AreEqual(Thing.PortalAccessType.InvokeSpell, definition.Things[70].PortalAccess, "Thing 71 portal action type wrong");
             Assert.AreEqual(SpellAction.SpellActionType.ChangeLifeForce, definition.Things[70].Action.TypeOfSpellAction, "Thing 71 spell action type wrong");
             Assert.AreEqual(0x94, definition.Things[70].Action.Parameter, "Thing 71 spell action param wrong");
-            Assert.AreEqual("     THE FIRE BURNS WITH A SEVERELY       PUNISHING INTENSITY.  FERVENTLY YOU     PRAY FOR RELEASE FROM THE AWFUL PAIN. ", definition.Things[70].SpellCastMessage, "Thing 71 spell cast message wrong");
+            Assert.AreEqual("     THE FIRE BURNS WITH A SEVERELY     \r\n  PUNISHING INTENSITY.  FERVENTLY YOU   \r\n  PRAY FOR RELEASE FROM THE AWFUL PAIN. ", definition.Things[70].SpellCastMessage, "Thing 71 spell cast message wrong");
             Assert.IsFalse(definition.Things[70].DisappearsAfterUser, "Thing 71 disappears after use wrong");
 
             Assert.IsTrue(definition.Things[85].DisappearsAfterUser, "Thing 86 disappears after use wrong");
@@ -229,6 +229,7 @@ namespace AcsLibTest
             Assert.AreEqual(39, definition.Things[69].Picture, "Thing 70 picture wrong");
             Assert.AreEqual(Thing.ChooseWhenPutIntoRoomType.Object, definition.Things[69].ChooseWhenPutIntoRoom, "Thing 70 choose object wrong");
             Assert.AreEqual(Thing.CustomSpaceAccessType.SpecificItem, definition.Things[69].CustomSpaceAccess, "Thing 70 access type wrong");
+            Assert.AreEqual("Open if you have a {0} - {1}", definition.Things[69].GetUsageDescription(), "Thing 70 usage description wrong");
             Assert.AreEqual(SpellAction.SpellActionType.PlayMusic, definition.Things[69].Action.TypeOfSpellAction, "Thing 70 spell action type wrong");
             Assert.AreEqual(22, definition.Things[69].Action.Parameter, "Thing 70 spell action param wrong");
             Assert.IsFalse(definition.Things[69].DestroyThingNeededToMove, "Thing 70 destroy thing needed wrong");
@@ -249,9 +250,20 @@ namespace AcsLibTest
             Assert.AreEqual(Thing.BumpActionType.InvokeSpell, definition.Things[16].BumpAction, "Thing 17 bump action wrong");
             Assert.AreEqual(SpellAction.SpellActionType.ActivateAllThings, definition.Things[16].Action.TypeOfSpellAction, "Thing 17 action is wrong");
             Assert.IsFalse(definition.Things[16].DisappearsAfterUser, "Thing 17 disappeats after use wrong");
-            Assert.AreEqual("  YOU CAREFULLY POUR A PORTION OF WATER FROM THE OASIS INTO A SEALABLE WHITE CUPPROVIDED BY A FRIENDLY DESERT TRIBE.    ", definition.Things[16].SpellCastMessage, "Things 17 spell cast message wrong");
+            Assert.AreEqual("  YOU CAREFULLY POUR A PORTION OF WATER \r\nFROM THE OASIS INTO A SEALABLE WHITE CUP\r\nPROVIDED BY A FRIENDLY DESERT TRIBE.    ", definition.Things[16].SpellCastMessage, "Things 17 spell cast message wrong");
 
             Assert.AreEqual(Thing.BumpActionType.Closed, definition.Things[19].BumpAction, "Thing 20 bump action wrong");
+
+            string ExpectedMessage = 
+                "   YOUR HAND PASSES THROUGH THE " +
+                "AIR AS THE IMAGE IN FRONT OF YOU" +
+                "EXPLODES INTO FRENETIC ACTIVITY." +
+                "THE HANDS OF THE SPIRIT WAVE AT " +
+                "THE TABLE AND AT A SPACE ON ITS " +
+                "FACE WHERE A LIVING BEING WOULD " +
+                "HAVE A MOUTH.  NOT A SINGLE WORD" +
+                "OF EXPLANATION DOES IT OFFER!   ";
+            Assert.AreEqual(ExpectedMessage, definition.LongMessages[43], "Thing 44 long message wrong"); // Long message for MOUTHLESS GHOST
         }
 
         [TestMethod]

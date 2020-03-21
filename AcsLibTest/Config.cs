@@ -19,7 +19,10 @@ namespace AcsLibTest
 {
     public class Config
     {
-        // To run tests, point this to the a fresh copy of the Rivers Of Light .hrd file from the PC version of ACS
-        public static string TestFilePath = @"C:\temp\adven.hrd";
+        // To run tests, point this to a fresh copy of Rivers Of Light
+        //public static string TestFilePath = @"C:\temp\adven.hrd"; // PC version
+        //public static string TestFilePath = @"C:\temp\rivers.d64"; // C64 version
+        public static string TestFilePath = @"C:\temp\rivers.dsk"; // Apple II version
+        //public static string TestFilePath = @"C:\temp\Amiga_Rivers"; // Amiga version
     }
 }

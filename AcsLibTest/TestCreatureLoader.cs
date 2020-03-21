@@ -54,8 +54,13 @@ namespace AcsLibTest
              Assert.AreEqual(15, definition.CreatureList[0].ParrySkill, "Creature 1 parry skill wrong");
              Assert.AreEqual(0, definition.CreatureList[0].Wealth, "Creature 1 wealth wrong");
              Assert.AreEqual(4, definition.CreatureList[0].Speed, "Creature 1 speed wrong");
+             Assert.AreEqual("No magical defense", definition.CreatureList[0].DefenseTypeName, "Creature 1 special defense wrong");
              Assert.AreEqual(61, definition.CreatureList[0].ReadiedArmor, "Creature 1 armor wrong");
              Assert.AreEqual(37, definition.CreatureList[0].ReadiedWeapon, "Creature 1 weapon wrong");
+             Assert.AreEqual("Cautious", definition.CreatureList[0].StrategyBraveName, "Creature 1 strategy 1 wrong");
+             Assert.AreEqual("Aggressive", definition.CreatureList[0].StrategyAggressionName, "Creature 1 strategy 2 wrong"); 
+             Assert.AreEqual("Neutral", definition.CreatureList[0].StrategyAlignmentName, "Creature 1 strategy 3 wrong");
+
 
              Assert.AreEqual(1, definition.CreatureList[0].Possessions[37], "Creature 1 possession 37 wrong");
              Assert.AreEqual(1, definition.CreatureList[0].Possessions[61], "Creature 1 possession 61 wrong");

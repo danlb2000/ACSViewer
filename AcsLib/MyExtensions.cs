@@ -47,6 +47,8 @@ namespace AcsLib
             return b;
         }
 
+        // Since all messages are now lined up, this method is no longer used.
+        /*
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly")]
         public static string CollapseSpace(this string s)
         {
@@ -76,5 +78,6 @@ namespace AcsLib
             }
             return s2.ToString();
         }
+        */
     }
 }

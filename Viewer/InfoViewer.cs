@@ -27,7 +27,7 @@ namespace AcsViewer
 
         public InfoViewer()
         {
-            InitializeComponent();        
+            InitializeComponent();
         }
 
         private void InfoViewer_Load(object sender, EventArgs e)
@@ -36,7 +36,12 @@ namespace AcsViewer
 
             UIName.Text = Definition.Name;
             UIByLine.Text = Definition.Byline;
-            UIIntroduction.Text = Definition.IntroText;
+            UITheme.Text = Definition.Theme;
+            UIIntroduction.Text = Definition.IntroText.Substring(0, 32);
+            for (int i = 1; i < 8; i++)
+            {
+                UIIntroduction.AppendText("\r\n" + Definition.IntroText.Substring(i * 32, 32));
+            }
         }
     }
 }

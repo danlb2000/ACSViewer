@@ -38,8 +38,8 @@ namespace AcsLibTest
         {
             Assert.AreEqual("ANCIENT VALLEY", definition.Regions[0].Name, "Region 1 name wrong");
             Assert.AreEqual("SIPPAR CITY", definition.Regions[1].Name, "Region 2 name wrong");
+            Assert.AreEqual("SINAI DESERT", definition.Regions[10].Name, "Region 11 name wrong");
             Assert.AreEqual("GIZEH", definition.Regions[11].Name, "Region 12 name wrong");
-            Assert.AreEqual("REGION15", definition.Regions[14].Name, "Region 15 name wrong");
         }
 
         [TestMethod]
@@ -61,33 +61,24 @@ namespace AcsLibTest
             Assert.AreEqual(16, room.YPosition, "Region 1 Room 1 Ypos wrong");
             Assert.AreEqual(27, room.WallPicture, "Region 1 Room 1 wall picture wrong");
 
-             room = definition.Regions[11].Rooms[0];
+        }
+
+        [TestMethod]
+        public void TestLastRegion()
+        {
+            Room room = definition.Regions[11].Rooms[0];
             Assert.AreEqual("GIZEH", room.Name, "Region 12 Room 0 wrong name");
             Assert.AreEqual(9, room.Height, "Region 12 Room 0 wrong Height");
             Assert.AreEqual(11, room.Width, "Region 12 Room 0 wrong Width");
             Assert.AreEqual(48, room.XPosition, "Region 12 Room 0 Xpos wrong");
             Assert.AreEqual(13, room.WallPicture, "Region 12 Room 0 wall picture wrong");
 
-        }
-
-        [TestMethod]
-        public void TestLastRegion()
-        {
-            Room room = definition.Regions[14].Rooms[0];
-            Assert.AreEqual("ROOM1", room.Name, "Region 14 Room 0 wrong name");
-            Assert.AreEqual(5, room.Height, "Region 14 Room 0 wrong Height");
-            Assert.AreEqual(6, room.Width, "Region 14 Room 0 wrong Width");
-            Assert.AreEqual(39, room.XPosition, "Region 14 Room 0 Xpos wrong");
-            Assert.AreEqual(19, room.YPosition, "Region 14 Room 0 Ypos wrong");
-            Assert.AreEqual(19, room.WallPicture, "Region 14 Room 0 wall picture wrong");
-
-             room = definition.Regions[14].Rooms[15];
-            Assert.AreEqual("TEST16", room.Name, "Region 14 Room 0 wrong name");
-            Assert.AreEqual(6, room.Height, "Region 14 Room 0 wrong Height");
-            Assert.AreEqual(6, room.Width, "Region 14 Room 0 wrong Width");
-            Assert.AreEqual(52, room.XPosition, "Region 14 Room 0 Xpos wrong");
-            Assert.AreEqual(7, room.YPosition, "Region 14 Room 0 Ypos wrong");
-            Assert.AreEqual(19, room.WallPicture, "Region 14 Room 0 wall picture wrong");
+            room = definition.Regions[11].Rooms[14];
+            Assert.AreEqual("PHAROAH'S ALTAR", room.Name, "Region 12 Room 15 wrong name");
+            Assert.AreEqual(5, room.Height, "Region 12 Room 15 wrong Height");
+            Assert.AreEqual(5, room.Width, "Region 12 Room 15 wrong Width");
+            Assert.AreEqual(63, room.XPosition, "Region 12 Room 15 Xpos wrong");
+            Assert.AreEqual(19, room.WallPicture, "Region 12 Room 15 wall picture wrong");
         }
 
         [TestMethod]
@@ -97,6 +88,23 @@ namespace AcsLibTest
             Assert.AreEqual(121, room.RoomItems[0].ItemNumber, "River Valley Item 0 number wrong");
             Assert.AreEqual(8, room.RoomItems[0].XPosition, "River Valley Item 0 xpos wrong");
             Assert.AreEqual(8, room.RoomItems[0].YPosition, "River Valley Item 0 ypos wrong");
+            Assert.AreEqual(22, room.RoomItems[0].Parameter, "River Valley Item 0 parameter wrong");
+
+            string ExpectedMessage =
+                "   \"I REALLY DON'T MIND YOU     " +
+                " SIDLING ON BY ME LIKE THAT,\"   " +
+                "       SAYS THE HUNTER,         " +
+                " \"BUT IF YOU WOULD GIVE ME A    " +
+                " STATUE OF THE MOTHER GODDESS,  " +
+                " I WOULD BE VERY GRATEFUL. JUST " +
+                " DROP IT ON ME ANYTIME, AND I'LL" +
+                " REWARD YOU AS BEST I CAN.\"     ";
+            // Long message for TALKING FRIEND in River Valley
+            Assert.AreEqual(ExpectedMessage, definition.LongMessages[13], "River Valley Item 13 long message wrong");
+
+            Assert.AreEqual(3, definition.Regions[0].StoreItems[3], "River Valley Store item 2 wrong");
+            Assert.AreEqual(1, definition.Regions[0].StoreItems[10], "River Valley Store item 9 wrong");
+            Assert.AreEqual(1, definition.Regions[0].StoreItems[60], "River Valley Store item 59 wrong");
         }
 
         [TestMethod]

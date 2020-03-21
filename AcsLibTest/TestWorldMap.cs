@@ -48,7 +48,7 @@ namespace AcsLibTest
         
         [TestMethod]
         public void MapName() {
-            Assert.AreEqual("THE FERTILE CRESCENT", definition.WorldMapName);
+            Assert.AreEqual("THE FERTILE CRESCENT", definition.WorldMapName, "World map name wrong");
         }
 
         [TestMethod]

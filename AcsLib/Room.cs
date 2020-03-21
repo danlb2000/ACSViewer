@@ -37,11 +37,13 @@ namespace AcsLib
 
         public Collection<RoomItem> RoomItems { get; }
         public Collection<Creature> RoomCreatures { get;  }
+        public Collection<WorldMapCreature> RoomPlayers { get; }
 
         public Room()
         {
             RoomItems = new Collection<RoomItem>();
             RoomCreatures = new Collection<Creature>();
+            RoomPlayers = new Collection<WorldMapCreature>();
         }
 
         public override string ToString()

@@ -1,0 +1,428 @@
+Command Window: Tools.DiffFiles $1 $2
+
+V2.0 - 2/14/2020 (James Read)
+New Files
+ * Adventure_File_Format.html: Map of each system's adventure file,
+     and the structures of all objects.
+ * gpl-3.0.txt: So you don't have to go looking online for it anymore.
+ * MainIcon.ico: New icon for the program. Taken from the Amiga Fantasy
+     Builder set.
+ * release_notes.txt: This file.
+ * uaeunp.exe and uaeunp.txt: Files taken from UAE, another GPL project.
+     Uaeunp.exe is used as a helper file for Amiga adventures.
+
+Changes to ReadMe
+ * Added descriptions of the file extensions specific to each system,
+     and specifically how to get Amiga adventures out of their
+	 floppy images and how to adjust the C64 palette.
+
+Changes to AcsLib
+ Summary of biggest changes:
+  * Added ability to open adventures created for the Apple II and
+      Commodore Amiga versions of Adventure Construction Set.
+	NOTE: The Amiga code uses a file located inside the ADF storage
+	  file Amiga emulators use. A command line tool (UAEUNP)
+	  is used behind the scenes to extract that file.
+  * Figured out how to get contents of each Store object in game.
+  * Corrected palette for C64.
+  * Corrected long message assignment for C64.
+  * Expanded number of long messages from 80 to 255.
+  * Made palette colors and names accessible to GraphicsViewer.
+  * Replaced numbers with names for Play Music spell action.
+  * Set up Thing properties behind the scenes so that RoomViewer
+      can properly handle Custom Space & Custom Obstacle runtime
+	  properties.
+  * If you open an adventure with saved or retired players, you can now
+      view those players, including having them appear on the
+	  appropriate maps.
+  * Added minor discovered properties of Intro Theme and
+      World Map Wrap Behavior.
+  * Fixed assignment of Custom Space "Destroy thing needed to
+      move here" property.
+
+Detailed list of changes to AcsLib, by class:
+ New class: C64Palette
+  * The Commodore 64 has its 16 colors in a different order than
+      that used by DOS CGA. In addition, there is considerable
+	  disagreement in the Commodore user base concerning which
+	  exact RGB to assign to each color. The popular VICE program
+	  includes multiple palette files, in .vpl format, so that
+	  each user can select their preferred palette. C64Palette
+	  defaults to the palette created for the CCS64 emulator
+	  program, but if a file called "palette.vpl" is placed in
+	  the same directory as the executable, it will read that
+	  file and use it instead.
+ New class: Music
+  * This is currently just a list of all of the sfx/music cues
+      used in ACS. May in the future include the ability to
+	  play each cue.
+ Changes to BinaryFile:
+  * Removed all references to the Offset property. Addresses
+      will now be handled inside GameLoader.
+ Changes to MyExtensions:
+  * Moved the method CollapseSpace, as messages are now being
+      displayed as they were entered.
+ Changes to TextDecoder:
+  * In the matrix used to decode packed data, three space
+      entries were replaced with a period, a comma and a dash.
+ Added the following public properties to GameDefinition:
+  * Theme: The name of the song played during the introduction.
+  * ActivePlayers: The set of WorldMapCreature objects representing
+      players stored with the game.
+  * ActivePlayerCount: The number of players saved with this game,
+      from 0 to 4.
+  * RetiredPlayers: The set of WorldMapCreature objects representing
+      retired players stored with the game.
+  * RetiredPlayerCount: The number of retired players saved with
+      this game, from 0 to 34.
+  * PaletteSize: The number of colors in the palette. Values:
+	 & 4: For Commodore 64 or IBM PC. One of two options for
+	        the Apple II.
+	 & 6: The other option for the Apple II.
+	 & 32: For Commodore Amiga.
+  * Colors[PaletteSize]: The set of colors included in the palette.
+  * ColorNames[]: The names of the palette colors.
+    & NOTE: For Commodore Amiga, this is the RGB code of each color,
+	    instead of the name.
+  * TypeWorldMapWrap: What happens when you attempt to move off the
+      edge of the world map, as an enumeration value. The enum
+	  is called WorldMapWrapType.
+  * WorldMapTypeDescription: The string version of TypeWorldMapWrap.
+  * WorldMapPlayers: The set of Players located on the world map.
+ Modifications to the following public items inside GameDefinition:
+  * The FileType enum is now called the SystemType enum.
+  * The SystemType enum now has two more items: Apple and Amiga.
+  * The FileType TypeOfFile is now the SystemType System.
+  * The FinishGameNames object has been removed. This is because it
+      is not included in the Apple II adventure file, and because
+	  its contents were never used anywhere.
+ Changes to GameDefinition methods:
+  * GameDefinition(): Create Colors[32] and ColorNames[32], and default
+      the former to black. Initialize LongMessages[255] instead of
+	  LongMessages[80]. Initialize ActivePlayers, RetiredPlayers,
+	  WorldMapPlayers, ActivePlayerCount and RetiredPlayerCount,
+	  defaulting the last two to 0.
+ Changes to SpellAction class:
+  * The ActionParameterType of "Numeric" has been replaced with "Music".
+ Changes to Thing class:
+  * Method Description() was retired. It was meant to pass on custom
+      parameter information to the ThingViewer, but since the Thing
+	  object doesn't know this information, it doesn't make sense to
+	  do the work here.
+  * Added method GetUsageDescription(). This method provides a template
+      string to ThingViewer, which it will then fill in with custom
+	  parameter information.
+  * In support of GetUsageDescription(), UsageDescription attributes
+      have been added to the members of the CustomSpaceAccessType and
+	  PortalAccessType enumerations.
+ Changes to Room class:
+  * Added RoomPlayers public property, to store the set of ActivePlayers
+      currently in the room.
+ Changes to Region class:
+  * Added StoreItems[81] property.
+  * Initialized StoreItems[81] in Region() constructor.
+ Changes to WorldMapCreatures properties:
+  * Replaced AppearingInTerrain byte with AppearingIn string. This is
+      because this class is used to display random and resident creatures
+	  (and players) in regions.
+  * Added ToString() method to display the creature's name.
+ Changes to GameLoader properties:
+  * Added AddressLabels enum and int Addresses[8] to hold a set of key
+      file addresses. The private variable fileOffset will be used
+	  during the population of this array. For this reason, the
+	  PC_OFFSET and C64_OFFSET constants were dropped.
+  * The palette array size has been expanded from 17 to 32. A matching
+      string paletteNames[32] was created to hold the names of each
+	  color instead of hard-coding them, and colorLookup[] has been
+	  expanded in size from 4 to 32.
+  * An array ac[16] was added for the singular purpose of converting
+      a single byte in each row of Apple II graphics.
+ Changes to GameLoader method LoadGame():
+  * Used file extension to set the system and the initial fileOffset.
+  * Used system and fileOffset to populate Addresses[].
+    NOTE 1: All the times code was changed to use Addresses[] instead of
+	  hard-coded addresses will not be mentioned.
+    NOTE 2: This fixed an error in the C64 version where the LongMessage
+	  start address was incorrect.
+  * Dropped call to LoadFinishGameNames().
+  * Added calls to new methods LoadPicturesApple() and LoadPicturesAmiga()
+      to supplement LoadPicturesPC() and LoadPicturesC64(). Also added
+	  code to populate PaletteSize, Colors[] and ColorNames[] for
+	  PC and C64. (Apple and Amiga do those in their LoadPictures
+	  methods.)
+  * Added call to new method LoadPlayers().
+ Dropped GameLoader method LoadFinishGameNames().
+ Changes to GameLoader method LoadWorldMapCreatures():
+  * Populated WorldMapCreatures.AppearingIn instead of AppearingInTerrain.
+ Changes to GameLoader method LoadGameInfo():
+  * Got byte from file that stored the intro theme, and stored it in
+      GameDefinition.Theme.
+ Fix to GameLoader method LoadLongMessages():
+  * Loaded 255 messages instead of just 80.
+ Fix to GameLoader method LoadCustomSpace():
+  * Corrected address used to set Thing.DestroyThingNeededToMove.
+ Changes to GameLoader method LoadMessage():
+  * Inserted carriage returns every 40 characters, so short messages display
+      correctly.
+ Split GameLoader method SetupPalette() into SetupPalettePC(), 
+   SetupPaletteC64(), SetupPaletteApple() and SetupPaletteAmiga().
+   The first method is an unchanged copy of SetupPalette() with
+   the addition of setting paletteNames[]. SetupPalette64() uses
+   C64Palette class to set colors. SetupPaletteApple() is straightforward.
+   And SetupPaletteAmiga() reads the palette colors from the
+   adventure file, and defaults colorNames[] to ARGB of each
+   color--this is alright, because colorNames[] for Amiga are
+   never displayed.
+ Changes to GameLoader method LoadPicturesC64():
+  * colorLookup[3] has 8 subtracted from its value. This was necessary to get
+      the right colors.
+ New GameLoader methods LoadPicturesApple() and LoadPicturesAmiga(). Note that
+   Apple pictures are 14 pixels wide instead of 16.
+ GameLoader method RenderByte() has been renamed to RenderBytePC().
+ New GameLoader methods RenderBytesApple() and RenderBytesAmiga(). The former
+   forms a row out of two bytes, while the latter forms a row out of
+   five bytes. RenderBytesApple() is also the method that uses the ac[]
+   array to transform the color data for the middle pair of pixels in each
+   row.
+ Changes to GameLoader method LoadWorldMap():
+  * Got byte from file to determine wrapping properties, and stored it in
+      GameDefinition.TypeWorldMapWrap.
+ Changes to GameLoader method LoadRegions():
+  * Got 14 bytes from file for each region defining contents of that region's
+      store, decoded them using the same code from Creatures' possessions, and
+	  stored them in Regions[i].StoreItems[].
+ Changes to GameLoader method LoadCreature():
+  * Added catch for when picture byte is null.
+ New GameLoader method LoadPlayers()
+  * This is the same as loading a creature, just with two different address,
+      one for active players and one for retired players. They are
+      implemented as WorldMapCreatures, so that AppearingIn can be populated.
+	  For each applicable location, players are also added to WorldMapPlayers
+	  or RoomPlayers.	  
+
+Changes to AcsLibTest
+ Summary of biggest changes:
+  * Added tests for long messages, both ones built into things, and those
+      used as parameters of custom spaces/obstacles.
+  * Added tests for things added to AcsLib.
+  * Adjusted tests so they can run on all systems' version of Rivers of Light.
+
+ Detailed list of changes:
+  * Added test files for the other systems: rivers.d64, rivers.dsk, and
+      Amiga_Rivers (extracted and renamed from rivers.adf).
+  * Added commented-out lines in Config.cs so that any other system can
+      be tested.
+  * The Thing Loader tests were changed as follows:
+    & All tests that cover short messages now include the carriage returns
+	    that were inserted.
+	& The Custom Space test includes the UsageDescription that has been added.
+    & The Obstacle test added a new object so it can test long messages.
+  * The Creature Loader tests were changed as follows:
+    & Included missing tests for defense type and strategy.
+  * The WorldMapCreature tests were changed as follows:
+    & The AppearingInTerrain tests were replaced with InTerrain tests.
+  * The Region Loader tests were changed as follows:
+    & The test for Region 15 has been replaced by Region 11 [Sinai Desert],
+	    because not all systems have this unused region named the same.
+	& The tests for some unused rooms in Region 15 were replaced by
+	    tests for another room in Region 11.
+	& The room contents test now includes an item parameter, a long
+	    message, and the contents of the region store.
+ 
+
+Changes to Viewer
+ Summary of biggest changes:
+  * Added icon, taken from an Amiga Fantasy Builder graphic.
+  * Players are listed in the main form under "Players", but
+      only if the adventure includes saved or retired players.
+	  Double-clicking on an entry will display that player in the
+	  Creature Viewer.
+  * Players are listed on the Map Viewer and Room Viewer if
+      present, and their graphic will be shown. Clicking on
+	  the player name will cause that graphic to be outlined.
+	  Double-clicking on the player name will cause that
+	  player's data to appear in the Creature Viewer, with
+	  chance of appearing = 100%, and Appearing In populated
+	  with the location (or world map), room and X/Y coordinates.
+  * The RoomViewer now displays all custom parameters correctly.
+  * The RoomViewer now shows store contents.
+  * The RoomViewer now shows custom long messages.
+  * The GraphicsViewer now shows all graphics, allowing you to
+      click on one to see it blown up.
+  * The GraphicsViewer now shows the palette, complete with
+      color names. (No names for Amiga palette.)
+  * All short and long messages are displayed using mono-spaced fonts,
+      with new lines inserted as they are in ACS. This is so items like
+	  the tablet fragments in Rivers of Light display correctly.
+  * All new features added to AcsLib are supported.
+
+ List of detailed changes:
+ Changes to MainForm method UpdateTree():
+  * Added Players node to UIItemTree, but only if there's at least
+      one player saved or retired with the adventure. One line is added for
+	  each player, with the name of each player.
+  * Changed to use WorldMapCreatures.AppearingIn instead of AppearingInTerrain.
+ Changes to MainForm method itmLoad_Click():
+  * Added filters to open file dialog to specify which system is being loaded.
+      The Amiga filter is supposed to include files with no extension,
+	  but the open file dialog renders that as all files, regardless of
+	  extension. In addition, there's a filter for Amiga .adf files.
+  * For the case of an .adf file, the user is informed that a file needs to
+      be extracted, and given the choice of whether to proceed or not.
+	  If the user agrees, then a save dialog is used to get the file name
+	  to save as, and then ExtractFromADF() is called.
+  * TestFile() is called, and if it returns false, the user is told that
+      that the file is not an ACS adventure.
+ New MainForm method TestFile()
+  * This method examines the file to see if it contains a particular
+      sequence of bytes. This is only present in PC, C64 and Amiga files;
+	  no two Apple .dsk adventures have any guaranteed data in common.
+ New MainForm method ExtractFromADF():
+  * This method calls the command line tool UAEUNP to extract the file
+      Adventure from an ACS .ADF file.
+  * UAEUNP is distributed with the WinUAE Amiga emulator, using the 
+      GNU General Public License.
+  * If UAEUNP returns an error or doesn't extract an Adventure file of
+      the correct length, that error is passed along to the user.
+ Changes to MainForm method LoadGame():
+  * Title of the form changed from the file name to the adventure name.
+ Changes to MainForm method UIItemTree_DoubleClick():
+  * Added code to cover double-clicking on a player name: the CreatureViewer
+     will open with the information.
+ Changes to InfoViewer:
+  * Added UITheme field, and populated it from GameDefinition.
+  * Resized UIIntroduction and set font to be Courier New 9 pt.
+  * In InfoViewer_Load(), parsed the intro text to insert
+      carriage returns every 32 characters.
+ Changes to MapViewer form:
+  * Added new field UIMapWrap.
+  * Added new field UIPlayers.
+  * The form has been made wider to find room for UIPlayers.
+ Changes to MapViewer method UpdateMap():
+  * Picture width is adjusted if System = Apple.
+  * If any Players are on the world map, they are drawn there.
+ Changes to MapViewer method UpdatePortalDescription():
+  * Method name renamed to ShowMap().
+  * Possible destination name "No in use" changed to "Not in use".
+  * UIPlayers list populated with list of players on world map.
+ Changes to MapViewer method MapViewer_Load():
+  * UIMapWrap is populated with whether or not the world map's edges
+      wrap around or not.
+  * If UIPlayers list is populated, it is displayed. Otherwise,
+      the field is not displayed and the form is narrowed so not
+	  to leave blank space.
+ MapViewer methods added for UIPlayers field (SelectedIndexChanged and
+   DoubleClick). Clicking on a player name will cause that player's
+   graphic to be outlined on the map. Double-clicking will cause that
+   player's WorldMapCreature to open in CreatureViewer.
+ GraphicsViewer: complete redesign
+  * The left side of the new viewer displays all 96/110 graphics, split up into
+      the game categories of Terrain Pictures, Thing Pictures, and
+	  Creature Pictures. The upper right corner shows the 4/6/32 palette colors,
+	  with the name of each color overlaid (except for the 32 color case).
+	  The bottom right is the old graphic viewer.
+  * Clicking on the image set will cause the selected image to appear in the
+      viewer.
+  * Selecting the graphic with the buttons or the textbox will cause the
+      corresponding image in the set to be outlined.
+  NOTE 1: If System = Apple, picture width will be adjusted
+    from 16 to 14 pixels.
+  NOTE 2: The color name text is colored either black or white, whichever
+    one is contrasting to the color being depicted. The formula for this is
+	from https://stackoverflow.com/questions/3942878/how-to-decide-font-color-in-white-or-black-depending-on-background-color
+ DisplayText has been resized, and the font changed to Courier New 9 pt.
+ The DisplayText method DisplayText_Load has been changed to insert newline
+   characters every 32 characters.
+ Changes to ThingViewer form:
+  * Field added to display Thing number.
+  * Why Can't Pass and Spell Cast message fields have been resized and had
+      font changed to Courier New.
+ Changes to ThingViewer method ShowActionParam():
+  * Play Music tune name is now displayed.
+  * For the Summon/Banish creature action, the code now correctly handles the
+      special action of "Banish all creatures", and pre-pends "Summon " in front
+	  of the creature name the rest of the time.
+ Changes to ThingViewer method UpdateThing():
+  * The UIPortalParamLabel's name is now changed from "Portal Access Parameter"
+      to "Custom Space Access Parameter" as necessary.
+  * The UIPortalAccessParam field is now populated with the proper
+      Thing.PortalActionParameter.ToString() value for Custom Spaces. When the
+	  value is supposed to be set during room construction, it is set to
+	  "[Choose]".
+ The ThingViewer method UIActionParam_DoubleClick() was crashing when a
+    custom parameter was present in long message actions. This has been
+	corrected to pass either the thing's action parameter or the
+	custom parameter to DisplayText.
+ Changes to CreatureViewer form:
+  * Appears In field has been widened.
+ Changes to CreatureViewer method ShowCreature():
+  * The Appears In field now displays MapCreature.AppearingIn
+      instead of AppearingInTerrain (if present).
+  * The Class field now displays "Map Creature" when the creature
+      was not from the Master Creature list.
+ Changes to RoomViewer form:
+  * New fields UIText and UIStoreItems added in same place as the
+      UIInformation, UIRandomCreature, UIAppearChance and UIPortalDestination
+	  fields.
+  * The UIMap object is made a little less tall, in the area that is not used.
+  * The UIResidentCreatures object is made half-height.
+  * New field UIPlayers in the space opened up by UIResidentCreatures'
+      size change.
+ Changes to RoomViewer properties:
+  * map[] has gained a third dimension. map[x,y,0] stores the graphics number
+      as before. map[x,y,1] holds a flag: 0 means that the space is empty,
+	  while 1 means that at least one thing is in this spot. This was done
+	  so that the rendition of the room would match what it is in the
+      game, with earlier objects "on top of" later objects. map[x,y,2] holds
+	  the Thing # of that top object.
+  * picWidth and picHeight keep track of of the dimensions of each picture.
+ Changes to RoomViewer() method:
+  * If System = Apple, picWidth is changed from 16 to 14 pixels.
+ Changes to RoomViewer ClearMap() method:
+  * map[x,y,1] is set to 0 [unoccupied].
+  * map[x,y,2] is set to 127 [Room Floor].
+ Changes to RoomViewer method ShowRoom():
+  * UIPlayers is populated with list of players in the room.
+ Changes to RoomViewer method DrawRoom():
+  * map[x,y,1] is set to 1 for the top item/resident creature/player.
+ The RoomViewer method UIItems_SelectedIndexChanged() has gained substantial
+   code in the following areas:
+  * The UI elements have their Visibility properties switched on and off as
+     necessary: Things with custom long texts get UIText displayed, with the
+	 same logic as the ViewText object. Stores are displayed with their
+	 contents (using the same logic as CreatureViewer for possessions).
+	 In all other cases, the Information, Random Creature, Chance of Appearing
+     and Portal Destination fields are displayed.
+  * UIInformation is populated using the Thing.GetUsageDescription(), plus
+      appropriate text based on the item's custom parameter.
+ The RoomViewer methods UIItems_DoubleClick(), UIRandomCreature_DoubleClick(),
+   and UIResidentCreatures_DoubleClick() all catch when the user tried to
+   double-click on an empty entry, to prevent the program from crashing.
+ The RoomViewer methods UIRandomCreature_DoubleClick() and
+   UIResidentCreatures_DoubleClick() now populate the Appearing In field in
+   CreatureViewer with the current room. Random creatures populate the
+   chance appearing.
+ The RoomViewer object UIPlayers has SelectedIndexChanged and DoubleClick
+   methods added. Clicking on a player will have its picture outlined.
+   Double-clicking on a player will cause its WorldMapCreature to be
+   displayed in the Creature Viewer.
+
+Changes to Player:
+ * The window title now includes the name of the current location.
+ * Picture width is adjusted when System = Apple.
+ * The test to see if the player can move somewhere in a room is now based
+    on map[x,y,2], plus whether the player tries to go into the edge
+    of the room.
+
+Changes to Installer:
+ * Added three files to output directory: uaeunp.exe, uaeunp.txt and
+     palette.vpl.
+   & uaeunp.exe: Command-line file used to extract Amiga adventure
+       files from .ADF files.
+   & uaeunp.txt: File describing how to use uaeunp.exe.
+   & palette.vpl: Default Commodore 64 palette file, based on the
+       colors used by the CCS64 emulator. I happen to think
+	   this one works particularly well with Adventure Construction Set.
+
+V1.0 - 11/25/2016 - First release (Dan Boris)
+

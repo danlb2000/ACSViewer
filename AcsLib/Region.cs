@@ -28,6 +28,7 @@ namespace AcsLib
         public int Number { get; set; }
         public Collection<Creature> RandomCreatures { get;  }
         public Collection<Creature> RoomCreatures { get;  }
+        public byte[] StoreItems { get; set; }
 
         public int NumberOfRooms { get; set; }
 
@@ -39,6 +40,7 @@ namespace AcsLib
             Rooms = new Collection<Room>();
             RandomCreatures = new Collection<Creature>();
             RoomCreatures = new Collection<Creature>();
+            StoreItems = new byte[81];
         }
 
         public override string ToString()

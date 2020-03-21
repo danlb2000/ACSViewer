@@ -32,12 +32,15 @@
             this.UIItems = new System.Windows.Forms.ListBox();
             this.UIResidentCreatures = new System.Windows.Forms.ListBox();
             this.UIInformation = new System.Windows.Forms.TextBox();
-            this.label1 = new System.Windows.Forms.Label();
+            this.lblRandomCreature = new System.Windows.Forms.Label();
             this.UIRandomCreature = new System.Windows.Forms.TextBox();
-            this.label2 = new System.Windows.Forms.Label();
+            this.lblAppearChance = new System.Windows.Forms.Label();
             this.UIAppearChance = new System.Windows.Forms.TextBox();
             this.UIPortalDestination = new System.Windows.Forms.TextBox();
             this.UIPortalDest = new System.Windows.Forms.Label();
+            this.UIStoreItems = new System.Windows.Forms.ListBox();
+            this.UIText = new System.Windows.Forms.TextBox();
+            this.UIPlayers = new System.Windows.Forms.ListBox();
             ((System.ComponentModel.ISupportInitialize)(this.UIMap)).BeginInit();
             this.SuspendLayout();
             // 
@@ -48,7 +51,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.UIMap.Location = new System.Drawing.Point(0, 0);
             this.UIMap.Name = "UIMap";
-            this.UIMap.Size = new System.Drawing.Size(696, 631);
+            this.UIMap.Size = new System.Drawing.Size(696, 587);
             this.UIMap.TabIndex = 1;
             this.UIMap.TabStop = false;
             this.UIMap.Paint += new System.Windows.Forms.PaintEventHandler(this.UIMap_Paint);
@@ -68,7 +71,7 @@
             this.UIResidentCreatures.FormattingEnabled = true;
             this.UIResidentCreatures.Location = new System.Drawing.Point(702, 258);
             this.UIResidentCreatures.Name = "UIResidentCreatures";
-            this.UIResidentCreatures.Size = new System.Drawing.Size(147, 407);
+            this.UIResidentCreatures.Size = new System.Drawing.Size(147, 212);
             this.UIResidentCreatures.TabIndex = 3;
             this.UIResidentCreatures.SelectedIndexChanged += new System.EventHandler(this.UIResidentCreatures_SelectedIndexChanged);
             this.UIResidentCreatures.DoubleClick += new System.EventHandler(this.UIResidentCreatures_DoubleClick);
@@ -81,14 +84,14 @@
             this.UIInformation.Size = new System.Drawing.Size(696, 72);
             this.UIInformation.TabIndex = 4;
             // 
-            // label1
+            // lblRandomCreature
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(16, 676);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(90, 13);
-            this.label1.TabIndex = 5;
-            this.label1.Text = "Random Creature";
+            this.lblRandomCreature.AutoSize = true;
+            this.lblRandomCreature.Location = new System.Drawing.Point(16, 676);
+            this.lblRandomCreature.Name = "lblRandomCreature";
+            this.lblRandomCreature.Size = new System.Drawing.Size(90, 13);
+            this.lblRandomCreature.TabIndex = 5;
+            this.lblRandomCreature.Text = "Random Creature";
             // 
             // UIRandomCreature
             // 
@@ -98,14 +101,14 @@
             this.UIRandomCreature.TabIndex = 6;
             this.UIRandomCreature.DoubleClick += new System.EventHandler(this.UIRandomCreature_DoubleClick);
             // 
-            // label2
+            // lblAppearChance
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(182, 675);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(107, 13);
-            this.label2.TabIndex = 7;
-            this.label2.Text = "Chance of Appearing";
+            this.lblAppearChance.AutoSize = true;
+            this.lblAppearChance.Location = new System.Drawing.Point(182, 675);
+            this.lblAppearChance.Name = "lblAppearChance";
+            this.lblAppearChance.Size = new System.Drawing.Size(107, 13);
+            this.lblAppearChance.TabIndex = 7;
+            this.lblAppearChance.Text = "Chance of Appearing";
             // 
             // UIAppearChance
             // 
@@ -130,20 +133,55 @@
             this.UIPortalDest.TabIndex = 9;
             this.UIPortalDest.Text = "Portal Destination";
             // 
+            // UIStoreItems
+            // 
+            this.UIStoreItems.FormattingEnabled = true;
+            this.UIStoreItems.Location = new System.Drawing.Point(0, 588);
+            this.UIStoreItems.Name = "UIStoreItems";
+            this.UIStoreItems.Size = new System.Drawing.Size(696, 121);
+            this.UIStoreItems.TabIndex = 11;
+            this.UIStoreItems.Visible = false;
+            // 
+            // UIText
+            // 
+            this.UIText.Enabled = false;
+            this.UIText.Font = new System.Drawing.Font("Courier New", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.UIText.Location = new System.Drawing.Point(19, 588);
+            this.UIText.Multiline = true;
+            this.UIText.Name = "UIText";
+            this.UIText.ReadOnly = true;
+            this.UIText.Size = new System.Drawing.Size(233, 130);
+            this.UIText.TabIndex = 12;
+            this.UIText.Visible = false;
+            this.UIText.WordWrap = false;
+            // 
+            // UIPlayers
+            // 
+            this.UIPlayers.FormattingEnabled = true;
+            this.UIPlayers.Location = new System.Drawing.Point(702, 477);
+            this.UIPlayers.Name = "UIPlayers";
+            this.UIPlayers.Size = new System.Drawing.Size(147, 212);
+            this.UIPlayers.TabIndex = 13;
+            this.UIPlayers.SelectedIndexChanged += new System.EventHandler(this.UIPlayers_SelectedIndexChanged);
+            this.UIPlayers.DoubleClick += new System.EventHandler(this.UIPlayers_DoubleClick);
+            // 
             // RoomViewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(847, 721);
+            this.Controls.Add(this.UIPlayers);
             this.Controls.Add(this.UIPortalDestination);
             this.Controls.Add(this.UIPortalDest);
             this.Controls.Add(this.UIAppearChance);
-            this.Controls.Add(this.label2);
+            this.Controls.Add(this.lblAppearChance);
             this.Controls.Add(this.UIRandomCreature);
-            this.Controls.Add(this.label1);
+            this.Controls.Add(this.lblRandomCreature);
             this.Controls.Add(this.UIInformation);
             this.Controls.Add(this.UIResidentCreatures);
             this.Controls.Add(this.UIItems);
+            this.Controls.Add(this.UIStoreItems);
+            this.Controls.Add(this.UIText);
             this.Controls.Add(this.UIMap);
             this.Name = "RoomViewer";
             this.Text = "RoomViewer";
@@ -160,11 +198,14 @@
         private System.Windows.Forms.ListBox UIItems;
         private System.Windows.Forms.ListBox UIResidentCreatures;
         private System.Windows.Forms.TextBox UIInformation;
-        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label lblRandomCreature;
         private System.Windows.Forms.TextBox UIRandomCreature;
-        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label lblAppearChance;
         private System.Windows.Forms.TextBox UIAppearChance;
         private System.Windows.Forms.TextBox UIPortalDestination;
         private System.Windows.Forms.Label UIPortalDest;
+        private System.Windows.Forms.ListBox UIStoreItems;
+        private System.Windows.Forms.TextBox UIText;
+        private System.Windows.Forms.ListBox UIPlayers;
     }
 }

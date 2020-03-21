@@ -26,7 +26,7 @@ namespace AcsLib
         private byte[] data;
         private int _length;
 
-        public int Offset { get; set; }
+        //public int Offset { get; set; }
 
         public int Length
         {
@@ -52,7 +52,7 @@ namespace AcsLib
 
         public byte ReadByte(int address)
         {
-            address += Offset;
+            //address += Offset;
             if (address > _length - 1) throw new ArgumentOutOfRangeException("address","Byte is beyond the end of the file");
             return data[address];
         }

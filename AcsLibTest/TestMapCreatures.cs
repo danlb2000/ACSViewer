@@ -36,13 +36,15 @@ namespace AcsLibTest
         public void TestCreature1()
         {
             Assert.AreEqual("CROCODILE", definition.WorldMapCreatures[0].Creature.Name, "Name 0 wrong");
-            Assert.AreEqual(4, definition.WorldMapCreatures[0].AppearingInTerrain, "Terrain 0 wrong");
+            //Assert.AreEqual(4, definition.WorldMapCreatures[0].AppearingInTerrain, "Terrain 0 wrong");
+            Assert.AreEqual("WEST-EAST RIVER", definition.WorldMapCreatures[0].AppearingIn, "Terrain 0 wrong");
             Assert.AreEqual(10, definition.WorldMapCreatures[0].ChanceAppearing, "Chance Appearing 0 wrong");
             Assert.AreEqual(12, definition.WorldMapCreatures[0].Creature.Constitution, "Constitution 0 wrong");
             Assert.AreEqual(Creature.StrategyAggressionType.Aggressive, definition.WorldMapCreatures[0].Creature.StrategyAggression, "StrategyAggression 0 wrong");
 
             Assert.AreEqual("ENRAGED HIPPO", definition.WorldMapCreatures[7].Creature.Name, "Name 7 wrong");
-            Assert.AreEqual(5, definition.WorldMapCreatures[7].AppearingInTerrain, "Terrain 7 wrong");
+            //Assert.AreEqual(5, definition.WorldMapCreatures[7].AppearingInTerrain, "Terrain 7 wrong");
+            Assert.AreEqual("NORTHSOUTH RIVR", definition.WorldMapCreatures[7].AppearingIn, "Terrain 7 wrong");
             Assert.AreEqual(15, definition.WorldMapCreatures[7].ChanceAppearing, "Chance Appearing 7 wrong");
             Assert.AreEqual(17, definition.WorldMapCreatures[7].Creature.Constitution, "Constitution 7 wrong");
             Assert.AreEqual(Creature.StrategyAggressionType.Aggressive, definition.WorldMapCreatures[7].Creature.StrategyAggression, "StrategyAggression 7 wrong");
